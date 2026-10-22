@@ -445,6 +445,75 @@ async function definirOrcamentoMes(anoMes, limiteGeral) {
 }
 
 // ==========================================
+// FUNÇÕES: RELATÓRIO E ANÁLISE MENSAL (RF-03)
+// ==========================================
+
+function obterSaldoAcumuladoConta(anoMesLimite = null) {
+    let sql = `
+        SELECT 
+            COALESCE(SUM(CASE WHEN tipo = 'receita' AND status IN ('Recebido', 'Pago') THEN valor ELSE 0 END), 0) -
+            COALESCE(SUM(CASE WHEN tipo = 'despesa' AND status = 'Pago' THEN valor ELSE 0 END), 0) as saldo_acumulado
+        FROM transacoes
+    `;
+    const params = [];
+    if (anoMesLimite) {
+        sql += " WHERE strftime('%Y-%m', data_vencimento) <= ?";
+        params.push(anoMesLimite);
+    }
+    const res = querySQL(sql, params)[0];
+    return res ? res.saldo_acumulado : 0;
+}
+
+function obterDadosRelatorioMensal(anoMes) {
+    const totais = querySQL(`
+        SELECT 
+            COALESCE(SUM(CASE WHEN tipo = 'receita' THEN valor ELSE 0 END), 0) as total_receitas,
+            COALESCE(SUM(CASE WHEN tipo = 'despesa' THEN valor ELSE 0 END), 0) as total_despesas
+        FROM transacoes
+        WHERE strftime('%Y-%m', data_vencimento) = ?
+    `, [anoMes])[0] || { total_receitas: 0, total_despesas: 0 };
+
+    const despesasStatus = querySQL(`
+        SELECT 
+            COALESCE(SUM(CASE WHEN status = 'Pago' THEN valor ELSE 0 END), 0) as total_pago,
+            COALESCE(SUM(CASE WHEN status = 'Pendente' THEN valor ELSE 0 END), 0) as total_pendente,
+            COUNT(CASE WHEN status = 'Pago' THEN 1 END) as qtd_pago,
+            COUNT(CASE WHEN status = 'Pendente' THEN 1 END) as qtd_pendente
+        FROM transacoes
+        WHERE tipo = 'despesa' AND strftime('%Y-%m', data_vencimento) = ?
+    `, [anoMes])[0] || { total_pago: 0, total_pendente: 0, qtd_pago: 0, qtd_pendente: 0 };
+
+    const categoriasDespesas = querySQL(`
+        SELECT 
+            c.id, c.nome, c.icone, c.cor,
+            SUM(t.valor) as total,
+            COUNT(t.id) as quantidade
+        FROM transacoes t
+        JOIN categorias c ON t.categoria_id = c.id
+        WHERE t.tipo = 'despesa' AND strftime('%Y-%m', t.data_vencimento) = ?
+        GROUP BY c.id
+        ORDER BY total DESC
+    `, [anoMes]);
+
+    const categoriasComPercentual = categoriasDespesas.map(cat => ({
+        ...cat,
+        percentual: totais.total_despesas > 0 ? ((cat.total / totais.total_despesas) * 100) : 0
+    }));
+
+    return {
+        anoMes,
+        totalReceitas: totais.total_receitas,
+        totalDespesas: totais.total_despesas,
+        saldo: totais.total_receitas - totais.total_despesas,
+        despesasPagas: despesasStatus.total_pago,
+        despesasPendentes: despesasStatus.total_pendente,
+        qtdPagas: despesasStatus.qtd_pago,
+        qtdPendentes: despesasStatus.qtd_pendente,
+        categorias: categoriasComPercentual
+    };
+}
+
+// ==========================================
 // FUNÇÕES: BACKUP E RESTAURAÇÃO (RF-04)
 // ==========================================
 

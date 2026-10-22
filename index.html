@@ -53,6 +53,13 @@
         .slider-track {
             background: linear-gradient(90deg, rgba(16,185,129,0.2) 0%, rgba(16,185,129,0.5) 100%);
         }
+        @media print {
+            body { background: white !important; color: #1e293b !important; padding: 0 !important; }
+            .w-full.max-w-md { max-width: 100% !important; border: none !important; box-shadow: none !important; height: auto !important; }
+            #modal-relatorio { position: static !important; background: white !important; padding: 0 !important; display: block !important; }
+            #modal-relatorio > div { max-width: 100% !important; border: none !important; box-shadow: none !important; max-height: none !important; overflow: visible !important; background: white !important; color: #0f172a !important; }
+            header, nav, #theme-toggle, #toggle-privacy, .no-print, main > section:not(#tab-dashboard) { display: none !important; }
+        }
     </style>
 </head>
 <body class="bg-slate-200 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans min-h-screen flex items-center justify-center p-0 md:p-6 antialiased selection:bg-emerald-500 selection:text-white transition-colors duration-200">
@@ -61,7 +68,7 @@
     <div class="w-full max-w-md h-screen md:h-[880px] bg-slate-50 dark:bg-darkBg md:rounded-[40px] shadow-2xl flex flex-col overflow-hidden relative border-0 md:border-[8px] border-slate-300 dark:border-slate-800 transition-colors duration-200">
         
         <!-- Status Bar do Android -->
-        <div class="pt-3 px-6 pb-2 flex justify-between items-center text-xs font-semibold text-slate-500 dark:text-slate-400 select-none z-20 bg-slate-50 dark:bg-darkBg">
+        <div class="pt-3 px-6 pb-2 flex justify-between items-center text-xs font-semibold text-slate-500 dark:text-slate-400 select-none z-20 bg-slate-50 dark:bg-darkBg no-print">
             <span id="android-clock">09:41</span>
             <div class="flex items-center space-x-2">
                 <span id="db-status-pill" class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium border border-emerald-500/20">
@@ -73,7 +80,7 @@
         </div>
 
         <!-- Barra Superior de Navegação / Header -->
-        <header class="px-5 py-3 bg-white dark:bg-darkBg border-b border-slate-200 dark:border-slate-800/80 z-20 transition-colors duration-200">
+        <header class="px-5 py-3 bg-white dark:bg-darkBg border-b border-slate-200 dark:border-slate-800/80 z-20 transition-colors duration-200 no-print">
             <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center space-x-3">
                     <div class="relative">
@@ -128,29 +135,53 @@
             <!-- ========================================== -->
             <section id="tab-dashboard" class="tab-content space-y-4 block">
                 
+                <!-- Seletor de Mês no Dashboard -->
+                <div class="flex items-center justify-between p-2 rounded-2xl bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800 shadow-sm no-print">
+                    <button onclick="mudarMes(-1)" class="w-7 h-7 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-colors">
+                        <i class="fa-solid fa-chevron-left text-xs"></i>
+                    </button>
+                    <div class="text-center">
+                        <span id="dash-mes-display" class="text-xs font-bold text-slate-800 dark:text-slate-200">Outubro 2026</span>
+                    </div>
+                    <button onclick="mudarMes(1)" class="w-7 h-7 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-colors">
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
+
                 <!-- Card de Saldo Consolidado com Comparativo Mês Anterior -->
                 <div class="p-5 rounded-3xl bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-cardBg dark:to-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl relative overflow-hidden transition-colors duration-200">
                     <div class="absolute -right-10 -top-10 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl"></div>
                     
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Saldo Total Consolidado</span>
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-building-columns text-emerald-500"></i> Saldo em Conta (Acumulado)
+                        </span>
                         <span id="dash-comparativo-mes" class="px-2 py-0.5 text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full border border-emerald-500/20">
                             Calculando...
                         </span>
                     </div>
 
-                    <div class="text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mb-4 sensitive-data" id="dash-total-balance">
+                    <!-- Saldo Real em Conta Corrente Acumulado -->
+                    <div class="text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mb-2.5 sensitive-data" id="dash-saldo-acumulado">
                         R$ 0,00
                     </div>
 
+                    <!-- Resultado / Sobra do Mês Selecionado -->
+                    <div class="flex items-center justify-between mb-3.5 pb-2.5 border-b border-slate-100 dark:border-slate-800/80 text-xs">
+                        <span class="text-[11px] text-slate-500 dark:text-slate-400">Resultado deste Mês:</span>
+                        <span id="dash-sobra-mes-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 sensitive-data">
+                            Sobrou R$ 0,00
+                        </span>
+                    </div>
+
                     <!-- Resumo Receitas e Despesas do Mês -->
-                    <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100 dark:border-slate-800/80">
+                    <div class="grid grid-cols-2 gap-3">
                         <div class="flex items-center space-x-2.5">
                             <div class="w-8 h-8 rounded-full bg-emerald-500/15 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-xs">
                                 <i class="fa-solid fa-arrow-down-left"></i>
                             </div>
                             <div>
-                                <p class="text-[10px] font-medium text-slate-500 dark:text-slate-400">Receitas (Mês)</p>
+                                <p class="text-[10px] font-medium text-slate-500 dark:text-slate-400">Receitas</p>
                                 <p class="text-xs font-bold text-emerald-600 dark:text-emerald-400 sensitive-data" id="dash-month-income">R$ 0,00</p>
                             </div>
                         </div>
@@ -160,52 +191,102 @@
                                 <i class="fa-solid fa-arrow-up-right"></i>
                             </div>
                             <div>
-                                <p class="text-[10px] font-medium text-slate-500 dark:text-slate-400">Despesas (Mês)</p>
+                                <p class="text-[10px] font-medium text-slate-500 dark:text-slate-400">Despesas</p>
                                 <p class="text-xs font-bold text-rose-600 dark:text-rose-400 sensitive-data" id="dash-month-expense">R$ 0,00</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Ações Rápidas -->
-                <div class="grid grid-cols-4 gap-2">
-                    <button onclick="openNewModal('receita')" class="flex flex-col items-center p-3 rounded-2xl bg-white dark:bg-cardBg hover:bg-slate-50 dark:hover:bg-cardHover border border-slate-200 dark:border-slate-800 transition-all text-center group shadow-sm">
-                        <div class="w-10 h-10 rounded-full bg-emerald-500/10 group-hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-1.5 transition-colors">
-                            <i class="fa-solid fa-plus text-sm"></i>
+                <!-- DESTAQUE ANALÍTICO: CONTAS PAGAS VS PENDENTES NO MÊS (RF-03) -->
+                <div class="p-4 rounded-3xl bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800 shadow-sm space-y-2.5">
+                    <div class="flex justify-between items-center text-xs font-bold text-slate-800 dark:text-slate-200">
+                        <div class="flex items-center space-x-1.5">
+                            <i class="fa-solid fa-scale-balanced text-emerald-500 text-xs"></i>
+                            <span>Contas no Mês: Pagas vs Pendentes</span>
                         </div>
-                        <span class="text-[11px] font-medium text-slate-700 dark:text-slate-300">Receita</span>
+                        <span id="dash-status-total-qtd" class="text-[10px] text-slate-400 font-normal">0 lançamentos</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div class="p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                                    <i class="fa-solid fa-check-double mr-1"></i>Pagas
+                                </span>
+                                <span id="dash-perc-pagas" class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">0%</span>
+                            </div>
+                            <p id="dash-valor-pagas" class="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 sensitive-data">R$ 0,00</p>
+                            <p id="dash-qtd-pagas" class="text-[9px] text-slate-400 mt-0.5">0 contas pagas</p>
+                        </div>
+
+                        <div class="p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-semibold text-amber-600 dark:text-amber-400">
+                                    <i class="fa-solid fa-clock mr-1"></i>Pendentes
+                                </span>
+                                <span id="dash-perc-pendentes" class="text-[10px] font-bold text-amber-600 dark:text-amber-400">0%</span>
+                            </div>
+                            <p id="dash-valor-pendentes" class="text-sm font-extrabold text-amber-600 dark:text-amber-400 sensitive-data">R$ 0,00</p>
+                            <p id="dash-qtd-pendentes" class="text-[9px] text-slate-400 mt-0.5">0 a pagar</p>
+                        </div>
+                    </div>
+
+                    <!-- Barra Proporcional Pagas vs Pendentes -->
+                    <div class="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
+                        <div id="bar-desp-pagas" class="bg-emerald-500 h-full transition-all duration-300" style="width: 50%" title="Pagas"></div>
+                        <div id="bar-desp-pendentes" class="bg-amber-400 h-full transition-all duration-300" style="width: 50%" title="Pendentes"></div>
+                    </div>
+                </div>
+
+                <!-- Ações Rápidas (5 Botões com Relatório Mensal RF-03) -->
+                <div class="grid grid-cols-5 gap-1.5 no-print">
+                    <button onclick="openNewModal('receita')" class="flex flex-col items-center p-2.5 rounded-2xl bg-white dark:bg-cardBg hover:bg-slate-50 dark:hover:bg-cardHover border border-slate-200 dark:border-slate-800 transition-all text-center group shadow-sm">
+                        <div class="w-9 h-9 rounded-full bg-emerald-500/10 group-hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-1 transition-colors">
+                            <i class="fa-solid fa-plus text-xs"></i>
+                        </div>
+                        <span class="text-[10px] font-medium text-slate-700 dark:text-slate-300">Receita</span>
                     </button>
 
-                    <button onclick="openNewModal('despesa')" class="flex flex-col items-center p-3 rounded-2xl bg-white dark:bg-cardBg hover:bg-slate-50 dark:hover:bg-cardHover border border-slate-200 dark:border-slate-800 transition-all text-center group shadow-sm">
-                        <div class="w-10 h-10 rounded-full bg-rose-500/10 group-hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center mb-1.5 transition-colors">
-                            <i class="fa-solid fa-minus text-sm"></i>
+                    <button onclick="openNewModal('despesa')" class="flex flex-col items-center p-2.5 rounded-2xl bg-white dark:bg-cardBg hover:bg-slate-50 dark:hover:bg-cardHover border border-slate-200 dark:border-slate-800 transition-all text-center group shadow-sm">
+                        <div class="w-9 h-9 rounded-full bg-rose-500/10 group-hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center mb-1 transition-colors">
+                            <i class="fa-solid fa-minus text-xs"></i>
                         </div>
-                        <span class="text-[11px] font-medium text-slate-700 dark:text-slate-300">Despesa</span>
+                        <span class="text-[10px] font-medium text-slate-700 dark:text-slate-300">Despesa</span>
                     </button>
 
-                    <button onclick="abrirModalCategorias()" class="flex flex-col items-center p-3 rounded-2xl bg-white dark:bg-cardBg hover:bg-slate-50 dark:hover:bg-cardHover border border-slate-200 dark:border-slate-800 transition-all text-center group shadow-sm" title="Gerenciar Categorias">
-                        <div class="w-10 h-10 rounded-full bg-blue-500/10 group-hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-1.5 transition-colors">
-                            <i class="fa-solid fa-tags text-sm"></i>
+                    <button onclick="abrirModalCategorias()" class="flex flex-col items-center p-2.5 rounded-2xl bg-white dark:bg-cardBg hover:bg-slate-50 dark:hover:bg-cardHover border border-slate-200 dark:border-slate-800 transition-all text-center group shadow-sm" title="Gerenciar Categorias">
+                        <div class="w-9 h-9 rounded-full bg-blue-500/10 group-hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-1 transition-colors">
+                            <i class="fa-solid fa-tags text-xs"></i>
                         </div>
-                        <span class="text-[11px] font-medium text-slate-700 dark:text-slate-300">Categorias</span>
+                        <span class="text-[10px] font-medium text-slate-700 dark:text-slate-300">Tags</span>
                     </button>
 
-                    <button onclick="exportarArquivoSQLite()" class="flex flex-col items-center p-3 rounded-2xl bg-white dark:bg-cardBg hover:bg-slate-50 dark:hover:bg-cardHover border border-slate-200 dark:border-slate-800 transition-all text-center group shadow-sm" title="Baixar Backup do SQLite">
-                        <div class="w-10 h-10 rounded-full bg-purple-500/10 group-hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-1.5 transition-colors">
-                            <i class="fa-solid fa-download text-sm"></i>
+                    <button onclick="abrirModalRelatorio()" class="flex flex-col items-center p-2.5 rounded-2xl bg-white dark:bg-cardBg hover:bg-slate-50 dark:hover:bg-cardHover border border-slate-200 dark:border-slate-800 transition-all text-center group shadow-sm" title="Relatório Mensal Analítico (RF-03)">
+                        <div class="w-9 h-9 rounded-full bg-purple-500/10 group-hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-1 transition-colors">
+                            <i class="fa-solid fa-file-invoice-dollar text-xs"></i>
                         </div>
-                        <span class="text-[11px] font-medium text-slate-700 dark:text-slate-300">Backup</span>
+                        <span class="text-[10px] font-medium text-slate-700 dark:text-slate-300">Relatório</span>
+                    </button>
+
+                    <button onclick="exportarArquivoSQLite()" class="flex flex-col items-center p-2.5 rounded-2xl bg-white dark:bg-cardBg hover:bg-slate-50 dark:hover:bg-cardHover border border-slate-200 dark:border-slate-800 transition-all text-center group shadow-sm" title="Baixar Backup do SQLite">
+                        <div class="w-9 h-9 rounded-full bg-slate-500/10 group-hover:bg-slate-500/20 text-slate-600 dark:text-slate-400 flex items-center justify-center mb-1 transition-colors">
+                            <i class="fa-solid fa-download text-xs"></i>
+                        </div>
+                        <span class="text-[10px] font-medium text-slate-700 dark:text-slate-300">Backup</span>
                     </button>
                 </div>
 
                 <!-- Bento Grid de Gráficos, Investimentos e Teto de Gastos -->
                 <div class="grid grid-cols-2 gap-3">
                     
-                    <!-- Bento 1: Gastos por Categoria -->
-                    <div class="p-4 rounded-2xl bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800 flex flex-col justify-between shadow-sm">
+                    <!-- Bento 1: Gastos por Categoria com Percentuais -->
+                    <div class="p-4 rounded-3xl bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800 flex flex-col justify-between shadow-sm">
                         <div class="flex justify-between items-center mb-2">
                             <h3 class="text-xs font-bold text-slate-800 dark:text-slate-200">Categorias</h3>
-                            <i class="fa-solid fa-chart-pie text-slate-400 text-xs"></i>
+                            <button onclick="abrirModalRelatorio()" class="text-[10px] text-emerald-600 dark:text-emerald-400 hover:underline">
+                                Detalhar
+                            </button>
                         </div>
                         <div class="relative w-full aspect-square flex items-center justify-center my-1">
                             <canvas id="categoryDonutChart"></canvas>
@@ -219,7 +300,7 @@
                     <div class="flex flex-col space-y-3">
                         
                         <!-- CARD 1: INVESTIMENTOS (PATRIMÔNIO) -->
-                        <div class="p-3.5 rounded-2xl bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800 flex-1 flex flex-col justify-between shadow-sm">
+                        <div class="p-3.5 rounded-3xl bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800 flex-1 flex flex-col justify-between shadow-sm">
                             <div class="flex justify-between items-center mb-1">
                                 <div class="flex items-center space-x-1.5">
                                     <i class="fa-solid fa-piggy-bank text-emerald-500 text-xs"></i>
@@ -250,7 +331,7 @@
                         </div>
 
                         <!-- CARD 2: TETO DE GASTOS (TERMÔMETRO ORÇAMENTÁRIO) -->
-                        <div class="p-3.5 rounded-2xl bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <div class="p-3.5 rounded-3xl bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800 shadow-sm">
                             <div class="flex justify-between items-center mb-1">
                                 <div class="flex items-center space-x-1.5">
                                     <i class="fa-solid fa-gauge-high text-amber-500 text-xs"></i>
@@ -275,7 +356,7 @@
                 </div>
 
                 <!-- Lançamentos Recentes no Dashboard -->
-                <div class="p-4 rounded-2xl bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm">
+                <div class="p-4 rounded-3xl bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm no-print">
                     <div class="flex justify-between items-center">
                         <h3 class="text-xs font-bold text-slate-800 dark:text-slate-200">Lançamentos Recentes</h3>
                         <button onclick="switchTab('extrato')" class="text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline font-medium">Ver todos</button>
@@ -423,7 +504,7 @@
         </main>
 
         <!-- Barra Inferior do Android -->
-        <div class="py-2 flex justify-center items-center bg-slate-50 dark:bg-darkBg border-t border-slate-200 dark:border-slate-900 z-20">
+        <div class="py-2 flex justify-center items-center bg-slate-50 dark:bg-darkBg border-t border-slate-200 dark:border-slate-900 z-20 no-print">
             <div class="w-32 h-1 bg-slate-300 dark:bg-slate-700/60 rounded-full"></div>
         </div>
 
@@ -432,7 +513,7 @@
     <!-- ========================================== -->
     <!-- MODAL 1: NOVO LANÇAMENTO & EDIÇÃO (RF-02) -->
     <!-- ========================================== -->
-    <div id="new-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-0 md:p-4 hidden transition-opacity">
+    <div id="new-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-0 md:p-4 hidden transition-opacity no-print">
         <div class="w-full max-w-md max-h-[90vh] overflow-y-auto no-scrollbar bg-white dark:bg-cardBg rounded-t-3xl md:rounded-3xl border border-slate-200 dark:border-slate-800 p-5 space-y-4 shadow-2xl">
             
             <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
@@ -525,7 +606,7 @@
     <!-- ========================================== -->
     <!-- MODAL 2: GESTÃO DE CATEGORIAS (RF-01) -->
     <!-- ========================================== -->
-    <div id="modal-categorias" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-0 md:p-4 hidden transition-opacity">
+    <div id="modal-categorias" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-0 md:p-4 hidden transition-opacity no-print">
         <div class="w-full max-w-md max-h-[85vh] bg-white dark:bg-cardBg rounded-t-3xl md:rounded-3xl border border-slate-200 dark:border-slate-800 p-5 space-y-4 flex flex-col shadow-2xl">
             
             <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
@@ -596,7 +677,7 @@
     <!-- ========================================== -->
     <!-- MODAL 3: GESTÃO DE INVESTIMENTOS (PATRIMÔNIO) -->
     <!-- ========================================== -->
-    <div id="modal-investimentos" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-0 md:p-4 hidden transition-opacity">
+    <div id="modal-investimentos" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-0 md:p-4 hidden transition-opacity no-print">
         <div class="w-full max-w-md max-h-[85vh] bg-white dark:bg-cardBg rounded-t-3xl md:rounded-3xl border border-slate-200 dark:border-slate-800 p-5 space-y-4 flex flex-col shadow-2xl">
             
             <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
@@ -643,7 +724,7 @@
     <!-- ========================================== -->
     <!-- MODAL 4: DEFINIR TETO DE GASTOS MENSAL -->
     <!-- ========================================== -->
-    <div id="modal-teto" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden transition-opacity">
+    <div id="modal-teto" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden transition-opacity no-print">
         <div class="w-full max-w-sm bg-white dark:bg-cardBg rounded-3xl border border-slate-200 dark:border-slate-800 p-5 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
                 <div class="flex items-center space-x-2">
@@ -669,6 +750,100 @@
                     Atualizar Termômetro
                 </button>
             </form>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL 5: RELATÓRIO MENSAL ANALÍTICO (RF-03) -->
+    <!-- ========================================== -->
+    <div id="modal-relatorio" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-0 md:p-4 hidden transition-opacity">
+        <div class="w-full max-w-lg max-h-[90vh] bg-white dark:bg-cardBg rounded-t-3xl md:rounded-3xl border border-slate-200 dark:border-slate-800 p-5 space-y-4 flex flex-col shadow-2xl overflow-y-auto no-scrollbar">
+            
+            <!-- Topo do Relatório -->
+            <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3 no-print">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-file-invoice-dollar text-purple-500 text-base"></i>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100">Relatório Financeiro Mensal</h3>
+                        <p class="text-[10px] text-slate-400" id="relatorio-subtitulo-mes">Outubro 2026</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="window.print()" class="px-2.5 py-1.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 hover:bg-purple-500/20 text-xs font-semibold flex items-center space-x-1" title="Imprimir / Salvar PDF">
+                        <i class="fa-solid fa-print"></i>
+                        <span>PDF</span>
+                    </button>
+                    <button onclick="fecharModalRelatorio()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cabeçalho Exclusivo de Impressão -->
+            <div class="hidden print:block text-center border-b pb-3 mb-3">
+                <h1 class="text-xl font-extrabold text-slate-900">FinControl - Relatório Financeiro</h1>
+                <p class="text-xs text-slate-600" id="relatorio-print-header">Período: Outubro 2026 • Alex Silva</p>
+            </div>
+
+            <!-- Resumo Executivo das Métricas (RF-03) -->
+            <div class="grid grid-cols-3 gap-2 text-center">
+                <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                    <p class="text-[10px] text-slate-400 font-medium">Receitas</p>
+                    <p class="text-xs font-bold text-emerald-600 dark:text-emerald-400 sensitive-data" id="rel-total-receitas">R$ 0,00</p>
+                </div>
+                <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                    <p class="text-[10px] text-slate-400 font-medium">Despesas</p>
+                    <p class="text-xs font-bold text-rose-600 dark:text-rose-400 sensitive-data" id="rel-total-despesas">R$ 0,00</p>
+                </div>
+                <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                    <p class="text-[10px] text-slate-400 font-medium">Saldo Líquido</p>
+                    <p class="text-xs font-bold text-slate-900 dark:text-slate-100 sensitive-data" id="rel-saldo-liquido">R$ 0,00</p>
+                </div>
+            </div>
+
+            <!-- Contas Pagas vs Pendentes no Relatório (RF-03) -->
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2">
+                <div class="flex justify-between items-center text-xs font-bold text-slate-800 dark:text-slate-200">
+                    <span>Execução das Despesas no Mês</span>
+                    <span id="rel-taxa-efetivacao" class="text-[10px] text-emerald-500 font-bold">0% Efetivado</span>
+                </div>
+                <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                        <span class="text-[10px] text-slate-400">Total Pago:</span>
+                        <p class="font-bold text-emerald-600 dark:text-emerald-400 sensitive-data" id="rel-pago">R$ 0,00</p>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400">Total a Pagar (Pendente):</span>
+                        <p class="font-bold text-amber-500 dark:text-amber-400 sensitive-data" id="rel-pendente">R$ 0,00</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Consolidação por Categoria com % de Representatividade (RF-03) -->
+            <div class="space-y-2">
+                <div class="flex justify-between items-center text-xs font-bold text-slate-800 dark:text-slate-200">
+                    <span>Gastos por Categoria (Representatividade)</span>
+                    <span class="text-[10px] text-slate-400 font-normal">% do total</span>
+                </div>
+
+                <div class="space-y-2" id="relatorio-categorias-lista">
+                    <!-- Preenchido via JS com valores e percentuais -->
+                </div>
+            </div>
+
+            <!-- Posição Geral de Investimentos -->
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 flex justify-between items-center text-xs">
+                <div>
+                    <span class="text-slate-500 dark:text-slate-400">Patrimônio Investido Acumulado:</span>
+                    <p class="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 sensitive-data" id="rel-investimentos-total">R$ 0,00</p>
+                </div>
+                <i class="fa-solid fa-piggy-bank text-emerald-500 text-xl"></i>
+            </div>
+
+            <!-- Rodapé / Dica -->
+            <p class="text-[10px] text-slate-400 text-center italic pt-1">
+                Relatório gerado localmente com dados seguros do SQLite no seu dispositivo.
+            </p>
         </div>
     </div>
 
@@ -736,7 +911,7 @@
             if (clockEl) clockEl.innerText = `${horas}:${minutos}`;
         }
 
-        // Navegação de Mês no Extrato
+        // Navegação de Mês no App
         function mudarMes(direcao) {
             const [ano, mes] = currentYearMonth.split('-').map(Number);
             const novaData = new Date(ano, mes - 1 + direcao, 1);
@@ -1201,12 +1376,71 @@
         }
 
         // ==========================================
-        // CARREGAMENTO & RENDERIZAÇÃO GERAL (BLOCO 4 & 5)
+        // RELATÓRIO E ANÁLISE MENSAL (RF-03)
+        // ==========================================
+        function abrirModalRelatorio() {
+            const relatorio = obterDadosRelatorioMensal(currentYearMonth);
+            const investTotal = obterTotalInvestimentos();
+
+            document.getElementById('relatorio-subtitulo-mes').innerText = `${formatarAnoMes(currentYearMonth)} (Consolidado)`;
+            document.getElementById('relatorio-print-header').innerText = `Período: ${formatarAnoMes(currentYearMonth)} • FinControl`;
+
+            document.getElementById('rel-total-receitas').innerText = `R$ ${relatorio.totalReceitas.toFixed(2).replace('.', ',')}`;
+            document.getElementById('rel-total-despesas').innerText = `R$ ${relatorio.totalDespesas.toFixed(2).replace('.', ',')}`;
+            document.getElementById('rel-saldo-liquido').innerText = `R$ ${relatorio.saldo.toFixed(2).replace('.', ',')}`;
+
+            document.getElementById('rel-pago').innerText = `R$ ${relatorio.despesasPagas.toFixed(2).replace('.', ',')} (${relatorio.qtdPagas} pagas)`;
+            document.getElementById('rel-pendente').innerText = `R$ ${relatorio.despesasPendentes.toFixed(2).replace('.', ',')} (${relatorio.qtdPendentes} a pagar)`;
+
+            const taxaEfetivacao = relatorio.totalDespesas > 0 
+                ? ((relatorio.despesasPagas / relatorio.totalDespesas) * 100).toFixed(0) 
+                : '100';
+            document.getElementById('rel-taxa-efetivacao').innerText = `${taxaEfetivacao}% Efetivado`;
+
+            document.getElementById('rel-investimentos-total').innerText = `R$ ${investTotal.toFixed(2).replace('.', ',')}`;
+
+            // Renderizar Lista de Categorias com % de Representatividade
+            const containerCats = document.getElementById('relatorio-categorias-lista');
+            if (relatorio.categorias.length === 0) {
+                containerCats.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Nenhuma despesa registrada neste mês.</p>`;
+            } else {
+                containerCats.innerHTML = relatorio.categorias.map(c => `
+                    <div class="p-2.5 rounded-2xl bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800 space-y-1.5 shadow-sm">
+                        <div class="flex justify-between items-center text-xs">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-6 h-6 rounded-lg flex items-center justify-center text-[10px]" style="background-color: ${c.cor}20; color: ${c.cor}">
+                                    <i class="fa-solid ${c.icone}"></i>
+                                </div>
+                                <span class="font-bold text-slate-800 dark:text-slate-200">${c.nome}</span>
+                                <span class="text-[10px] text-slate-400">(${c.quantidade} lançamentos)</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="font-bold text-slate-900 dark:text-slate-100 sensitive-data">R$ ${c.total.toFixed(2).replace('.', ',')}</span>
+                                <span class="text-[10px] font-semibold text-emerald-500 ml-1">(${c.percentual.toFixed(1)}%)</span>
+                            </div>
+                        </div>
+                        <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                            <div class="h-full rounded-full transition-all duration-300" style="background-color: ${c.cor}; width: ${c.percentual.toFixed(1)}%"></div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            document.getElementById('modal-relatorio').classList.remove('hidden');
+        }
+
+        function fecharModalRelatorio() {
+            document.getElementById('modal-relatorio').classList.add('hidden');
+        }
+
+        // ==========================================
+        // CARREGAMENTO & RENDERIZAÇÃO GERAL
         // ==========================================
 
         function carregarDadosApp() {
             try {
-                // Atualiza label do mês no extrato
+                // Atualiza labels de mês
+                document.getElementById('dash-mes-display').innerText = formatarAnoMes(currentYearMonth);
                 document.getElementById('extrato-mes-display').innerText = formatarAnoMes(currentYearMonth);
                 document.getElementById('extrato-mes-rotulo').innerText = formatarAnoMes(currentYearMonth);
 
@@ -1215,14 +1449,8 @@
                 const dataMesAnterior = new Date(ano, mes - 2, 1);
                 const anoMesAnterior = `${dataMesAnterior.getFullYear()}-${String(dataMesAnterior.getMonth() + 1).padStart(2, '0')}`;
 
-                // Totais do Mês Selecionado
-                const totais = querySQL(`
-                    SELECT 
-                        COALESCE(SUM(CASE WHEN tipo = 'receita' THEN valor ELSE 0 END), 0) as total_receitas,
-                        COALESCE(SUM(CASE WHEN tipo = 'despesa' THEN valor ELSE 0 END), 0) as total_despesas
-                    FROM transacoes
-                    WHERE strftime('%Y-%m', data_vencimento) = ?
-                `, [currentYearMonth])[0] || { total_receitas: 0, total_despesas: 0 };
+                // Dados Analíticos Consolidados do Mês Selecionado (RF-03)
+                const relatorio = obterDadosRelatorioMensal(currentYearMonth);
 
                 // Totais Mês Anterior
                 const despesasMesAnterior = querySQL(`
@@ -1231,23 +1459,55 @@
                     WHERE tipo = 'despesa' AND strftime('%Y-%m', data_vencimento) = ?
                 `, [anoMesAnterior])[0].total;
 
-                const saldo = totais.total_receitas - totais.total_despesas;
-
-                const balanceEl = document.getElementById('dash-total-balance');
+                const saldoAcumulado = obterSaldoAcumuladoConta(currentYearMonth);
+                const saldoContaEl = document.getElementById('dash-saldo-acumulado');
+                const sobraBadge = document.getElementById('dash-sobra-mes-badge');
                 const incomeEl = document.getElementById('dash-month-income');
                 const expenseEl = document.getElementById('dash-month-expense');
 
-                balanceEl.innerText = `R$ ${saldo.toFixed(2).replace('.', ',')}`;
-                incomeEl.innerText = `R$ ${totais.total_receitas.toFixed(2).replace('.', ',')}`;
-                expenseEl.innerText = `R$ ${totais.total_despesas.toFixed(2).replace('.', ',')}`;
+                saldoContaEl.innerText = `R$ ${saldoAcumulado.toFixed(2).replace('.', ',')}`;
+
+                if (relatorio.saldo >= 0) {
+                    sobraBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 sensitive-data';
+                    sobraBadge.innerText = `+ R$ ${relatorio.saldo.toFixed(2).replace('.', ',')} (Sobrou no mês)`;
+                } else {
+                    sobraBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 sensitive-data';
+                    sobraBadge.innerText = `- R$ ${Math.abs(relatorio.saldo).toFixed(2).replace('.', ',')} (Déficit no mês)`;
+                }
+
+                incomeEl.innerText = `R$ ${relatorio.totalReceitas.toFixed(2).replace('.', ',')}`;
+                expenseEl.innerText = `R$ ${relatorio.totalDespesas.toFixed(2).replace('.', ',')}`;
 
                 document.getElementById('extrato-mes-subtotal').innerText = 
-                    `Receitas: R$ ${totais.total_receitas.toFixed(0)} • Despesas: R$ ${totais.total_despesas.toFixed(0)}`;
+                    `Receitas: R$ ${relatorio.totalReceitas.toFixed(0)} • Despesas: R$ ${relatorio.totalDespesas.toFixed(0)}`;
+
+                // Destaque Contas Pendentes vs Pagas (RF-03)
+                const totalDesp = relatorio.totalDespesas;
+                const percPagas = totalDesp > 0 ? (relatorio.despesasPagas / totalDesp) * 100 : 0;
+                const percPendentes = totalDesp > 0 ? (relatorio.despesasPendentes / totalDesp) * 100 : 0;
+
+                document.getElementById('dash-perc-pagas').innerText = `${percPagas.toFixed(0)}%`;
+                document.getElementById('dash-perc-pendentes').innerText = `${percPendentes.toFixed(0)}%`;
+                document.getElementById('dash-valor-pagas').innerText = `R$ ${relatorio.despesasPagas.toFixed(2).replace('.', ',')}`;
+                document.getElementById('dash-valor-pendentes').innerText = `R$ ${relatorio.despesasPendentes.toFixed(2).replace('.', ',')}`;
+                document.getElementById('dash-qtd-pagas').innerText = `${relatorio.qtdPagas} contas pagas`;
+                document.getElementById('dash-qtd-pendentes').innerText = `${relatorio.qtdPendentes} a pagar`;
+                document.getElementById('dash-status-total-qtd').innerText = `${relatorio.qtdPagas + relatorio.qtdPendentes} lançamentos no mês`;
+
+                const barPagas = document.getElementById('bar-desp-pagas');
+                const barPend = document.getElementById('bar-desp-pendentes');
+                if (totalDesp > 0) {
+                    barPagas.style.width = `${percPagas}%`;
+                    barPend.style.width = `${percPendentes}%`;
+                } else {
+                    barPagas.style.width = '50%';
+                    barPend.style.width = '50%';
+                }
 
                 // Comparativo com o Mês Anterior
                 const compEl = document.getElementById('dash-comparativo-mes');
                 if (despesasMesAnterior > 0) {
-                    const diffPercent = ((totais.total_despesas - despesasMesAnterior) / despesasMesAnterior) * 100;
+                    const diffPercent = ((relatorio.totalDespesas - despesasMesAnterior) / despesasMesAnterior) * 100;
                     if (diffPercent < 0) {
                         compEl.className = 'px-2 py-0.5 text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full border border-emerald-500/20';
                         compEl.innerHTML = `<i class="fa-solid fa-arrow-down mr-1"></i>${Math.abs(diffPercent).toFixed(1)}% vs mês ant.`;
@@ -1262,11 +1522,11 @@
 
                 // Termômetro do Teto de Gastos
                 const tetoMes = obterOrcamentoMes(currentYearMonth) || 4000;
-                const percGasto = (totais.total_despesas / tetoMes) * 100;
+                const percGasto = (relatorio.totalDespesas / tetoMes) * 100;
                 const progressBar = document.getElementById('teto-progress-bar');
                 const tetoDesc = document.getElementById('teto-description');
 
-                tetoDesc.innerText = `Utilizado R$ ${totais.total_despesas.toFixed(0)} de R$ ${tetoMes.toFixed(0)} (${percGasto.toFixed(1)}%)`;
+                tetoDesc.innerText = `Utilizado R$ ${relatorio.totalDespesas.toFixed(0)} de R$ ${tetoMes.toFixed(0)} (${percGasto.toFixed(1)}%)`;
                 progressBar.style.width = `${Math.min(percGasto, 100)}%`;
 
                 if (percGasto >= 100) {
@@ -1278,9 +1538,12 @@
                 }
 
                 if (privacyMode) {
-                    balanceEl.innerText = '••••••';
+                    saldoContaEl.innerText = '••••••';
+                    sobraBadge.innerText = '••••••';
                     incomeEl.innerText = '••••••';
                     expenseEl.innerText = '••••••';
+                    document.getElementById('dash-valor-pagas').innerText = '••••••';
+                    document.getElementById('dash-valor-pendentes').innerText = '••••••';
                 }
 
                 atualizarCardInvestimentos();
@@ -1292,7 +1555,6 @@
         }
 
         function renderizarTransacoes() {
-            // Lançamentos do Mês Atual Selecionado
             const busca = (document.getElementById('extrato-search').value || '').trim();
             const transacoes = obterTransacoes({
                 anoMes: currentYearMonth,
@@ -1304,7 +1566,6 @@
             const recentList = document.getElementById('recent-transactions-list');
             const fullList = document.getElementById('extrato-full-list');
 
-            // Renderizar Recentes no Dashboard (geral global)
             const recentesGlobal = querySQL(`
                 SELECT t.*, c.nome as categoria_nome, c.icone as categoria_icone, c.cor as categoria_cor
                 FROM transacoes t
@@ -1319,7 +1580,6 @@
                 recentList.innerHTML = recentesGlobal.map(t => criarItemTransacaoHTML(t, false)).join('');
             }
 
-            // Renderizar Extrato Completo
             if (transacoes.length === 0) {
                 fullList.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Nenhum lançamento encontrado em ${formatarAnoMes(currentYearMonth)}.</p>`;
             } else {
