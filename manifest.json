@@ -1,0 +1,20 @@
+{
+  "name": "FinControl - Controle Financeiro",
+  "short_name": "FinControl",
+  "description": "Aplicativo de gestão financeira pessoal leve, intuitivo e com armazenamento SQLite local.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0D0F12",
+  "theme_color": "#0D0F12",
+  "icons": [
+    {
+      "src": "./assets/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
+

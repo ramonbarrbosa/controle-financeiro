@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinControl - Gestão Financeira Pessoal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN for Financial Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        darkBg: '#0D0F12',
+                        cardBg: '#1A1D24',
+                        cardHover: '#222630',
+                        accentGreen: '#10B981',
+                        accentRed: '#EF4444',
+                        accentBlue: '#3B82F6',
+                        accentPurple: '#8B5CF6'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom scrollbar for horizontal pill lists */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Smooth transitions */
+        .tab-content {
+            transition: opacity 0.25s ease-in-out, transform 0.25s ease-in-out;
+        }
+        
+        /* Glassmorphism utility */
+        .glass-panel {
+            background: rgba(26, 29, 36, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Slide to confirm custom track styling */
+        .slider-track {
+            background: linear-gradient(90deg, rgba(16,185,129,0.2) 0%, rgba(16,185,129,0.5) 100%);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex items-center justify-center p-0 md:p-6 antialiased selection:bg-emerald-500 selection:text-white">
+
+    <!-- Mobile Frame Container (Simulating Android Device) -->
+    <div class="w-full max-w-md h-screen md:h-[880px] bg-darkBg md:rounded-[40px] shadow-2xl flex flex-col overflow-hidden relative border-0 md:border-[8px] border-slate-800">
+        
+        <!-- Android Top Bar / Status Bar Mock -->
+        <div class="pt-3 px-6 pb-2 flex justify-between items-center text-xs font-semibold text-slate-400 select-none z-20 bg-darkBg">
+            <span>09:41</span>
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-signal"></i>
+                <i class="fa-solid fa-wifi"></i>
+                <i class="fa-solid fa-battery-full text-emerald-400"></i>
+            </div>
+        </div>
+
+        <!-- Top App Navigation / Tabs Bar -->
+        <header class="px-5 py-3 bg-darkBg border-b border-slate-800/80 z-20">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center space-x-3">
+                    <div class="relative">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-500 to-blue-600 p-[2px]">
+                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Avatar" class="w-full h-full rounded-full object-cover">
+                        </div>
+                        <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-darkBg rounded-full"></span>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-medium">Bem-vindo de volta,</p>
+                        <h1 class="text-sm font-bold text-slate-100">Alex Silva</h1>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <button id="toggle-privacy" onclick="togglePrivacy()" class="w-9 h-9 rounded-full bg-cardBg hover:bg-cardHover flex items-center justify-center text-slate-300 transition-colors" title="Ocultar/Exibir Valores">
+                        <i id="eye-icon" class="fa-solid fa-eye"></i>
+                    </button>
+                    <button onclick="openNewModal()" class="w-9 h-9 rounded-full bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 flex items-center justify-center transition-colors" title="Adicionar Lançamento">
+                        <i class="fa-solid fa-plus text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Segmented Tab Bar -->
+            <nav class="grid grid-cols-3 gap-1 p-1 bg-slate-900/90 rounded-2xl border border-slate-800/60">
+                <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="py-2 text-xs font-semibold rounded-xl transition-all duration-200 text-emerald-400 bg-cardBg shadow-sm">
+                    Dashboard
+                </button>
+                <button onclick="switchTab('extrato')" id="tab-btn-extrato" class="py-2 text-xs font-semibold rounded-xl transition-all duration-200 text-slate-400 hover:text-slate-200">
+                    Extrato
+                </button>
+                <button onclick="switchTab('confirmacao')" id="tab-btn-confirmacao" class="py-2 text-xs font-semibold rounded-xl transition-all duration-200 text-slate-400 hover:text-slate-200">
+                    Confirmação
+                </button>
+            </nav>
+        </header>
+
+        <!-- MAIN SCROLLABLE CONTENT AREA -->
+        <main class="flex-1 overflow-y-auto no-scrollbar relative p-4 space-y-4">
+
+            <!-- ========================================== -->
+            <!-- TAB 1: DASHBOARD (VISÃO GERAL) -->
+            <!-- ========================================== -->
+            <section id="tab-dashboard" class="tab-content space-y-4 block">
+                
+                <!-- Main Balance Summary Card -->
+                <div class="p-5 rounded-3xl bg-gradient-to-br from-slate-900 via-cardBg to-slate-900 border border-slate-800 shadow-xl relative overflow-hidden">
+                    <!-- Subtle background glow -->
+                    <div class="absolute -right-10 -top-10 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl"></div>
+                    
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs font-medium text-slate-400 uppercase tracking-wider">Saldo Total Consolidado</span>
+                        <span class="px-2 py-0.5 text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20">
+                            +8.4% este mês
+                        </span>
+                    </div>
+
+                    <div class="text-3xl font-extrabold text-slate-100 tracking-tight mb-4 sensitive-data">
+                        R$ 8.450,00
+                    </div>
+
+                    <!-- Income vs Expense Badges -->
+                    <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-800/80">
+                        <div class="flex items-center space-x-2.5">
+                            <div class="w-8 h-8 rounded-full bg-emerald-500/15 flex items-center justify-center text-emerald-400 text-xs">
+                                <i class="fa-solid fa-arrow-down-left"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-medium text-slate-400">Receitas (Mês)</p>
+                                <p class="text-xs font-bold text-emerald-400 sensitive-data">R$ 6.200,00</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-2.5">
+                            <div class="w-8 h-8 rounded-full bg-rose-500/15 flex items-center justify-center text-rose-400 text-xs">
+                                <i class="fa-solid fa-arrow-up-right"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-medium text-slate-400">Despesas (Mês)</p>
+                                <p class="text-xs font-bold text-rose-400 sensitive-data">R$ 3.120,00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Action Buttons for Financial Management -->
+                <div class="grid grid-cols-4 gap-2">
+                    <button onclick="openNewModal('receita')" class="flex flex-col items-center p-3 rounded-2xl bg-cardBg hover:bg-cardHover border border-slate-800 transition-all text-center group">
+                        <div class="w-10 h-10 rounded-full bg-emerald-500/10 group-hover:bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-1.5 transition-colors">
+                            <i class="fa-solid fa-plus text-sm"></i>
+                        </div>
+                        <span class="text-[11px] font-medium text-slate-300">Receita</span>
+                    </button>
+
+                    <button onclick="openNewModal('despesa')" class="flex flex-col items-center p-3 rounded-2xl bg-cardBg hover:bg-cardHover border border-slate-800 transition-all text-center group">
+                        <div class="w-10 h-10 rounded-full bg-rose-500/10 group-hover:bg-rose-500/20 text-rose-400 flex items-center justify-center mb-1.5 transition-colors">
+                            <i class="fa-solid fa-minus text-sm"></i>
+                        </div>
+                        <span class="text-[11px] font-medium text-slate-300">Despesa</span>
+                    </button>
+
+                    <button onclick="switchTab('extrato')" class="flex flex-col items-center p-3 rounded-2xl bg-cardBg hover:bg-cardHover border border-slate-800 transition-all text-center group">
+                        <div class="w-10 h-10 rounded-full bg-blue-500/10 group-hover:bg-blue-500/20 text-blue-400 flex items-center justify-center mb-1.5 transition-colors">
+                            <i class="fa-solid fa-[#4a5568] fa-right-left text-sm"></i>
+                        </div>
+                        <span class="text-[11px] font-medium text-slate-300">Ajuste</span>
+                    </button>
+
+                    <button onclick="alert('Gerando relatório mensal em PDF...')" class="flex flex-col items-center p-3 rounded-2xl bg-cardBg hover:bg-cardHover border border-slate-800 transition-all text-center group">
+                        <div class="w-10 h-10 rounded-full bg-purple-500/10 group-hover:bg-purple-500/20 text-purple-400 flex items-center justify-center mb-1.5 transition-colors">
+                            <i class="fa-solid fa-chart-pie text-sm"></i>
+                        </div>
+                        <span class="text-[11px] font-medium text-slate-300">Relatório</span>
+                    </button>
+                </div>
+
+                <!-- BENTO GRID SECTION -->
+                <div class="grid grid-cols-2 gap-3">
+                    
+                    <!-- Bento 1: Gastos por Categoria (Donut Chart) -->
+                    <div class="p-4 rounded-2xl bg-cardBg border border-slate-800 flex flex-col justify-between">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-xs font-bold text-slate-200">Categorias</h3>
+                            <i class="fa-solid fa-chart-donut text-slate-500 text-xs"></i>
+                        </div>
+                        <div class="relative w-full aspect-square flex items-center justify-center my-1">
+                            <canvas id="categoryDonutChart"></canvas>
+                        </div>
+                        <div class="text-[10px] text-slate-400 text-center mt-1">
+                            Maior: <span class="text-slate-200 font-semibold">Alimentação (38%)</span>
+                        </div>
+                    </div>
+
+                    <!-- Bento 2 & 3 Column -->
+                    <div class="flex flex-col space-y-3">
+                        
+                        <!-- Caixinhas / Metas de Economia -->
+                        <div class="p-3.5 rounded-2xl bg-cardBg border border-slate-800 flex-1 flex flex-col justify-between">
+                            <div class="flex justify-between items-center mb-2">
+                                <h3 class="text-xs font-bold text-slate-200">Reserva/Metas</h3>
+                                <span class="text-[10px] text-emerald-400 font-semibold">75%</span>
+                            </div>
+                            <div class="space-y-2">
+                                <div>
+                                    <div class="flex justify-between text-[10px] text-slate-400 mb-1">
+                                        <span>Emergência</span>
+                                        <span class="sensitive-data">R$ 15k / 20k</span>
+                                    </div>
+                                    <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                        <div class="bg-emerald-500 h-full rounded-full" style="width: 75%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-[10px] text-slate-400 mb-1">
+                                        <span>Viagem</span>
+                                        <span class="sensitive-data">R$ 2k / 5k</span>
+                                    </div>
+                                    <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                        <div class="bg-blue-500 h-full rounded-full" style="width: 40%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Orçamento Global do Mês -->
+                        <div class="p-3.5 rounded-2xl bg-cardBg border border-slate-800">
+                            <div class="flex justify-between items-center mb-1">
+                                <h3 class="text-xs font-bold text-slate-200">Teto de Gastos</h3>
+                                <span class="text-[10px] text-amber-400 font-semibold">50.3%</span>
+                            </div>
+                            <p class="text-[10px] text-slate-400 mb-2">Utilizado R$ 3.120 de R$ 6.200</p>
+                            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                                <div class="bg-amber-400 h-full rounded-full" style="width: 50.3%"></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Recent Transactions Section -->
+                <div class="p-4 rounded-2xl bg-cardBg border border-slate-800 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-xs font-bold text-slate-200">Lançamentos Recentes</h3>
+                        <button onclick="switchTab('extrato')" class="text-[11px] text-emerald-400 hover:underline font-medium">Ver todos</button>
+                    </div>
+
+                    <div class="space-y-2.5" id="recent-transactions-list">
+                        <!-- Items rendered via JS -->
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ========================================== -->
+            <!-- TAB 2: EXTRATO (DETALHAMENTO & FILTROS) -->
+            <!-- ========================================== -->
+            <section id="tab-extrato" class="tab-content space-y-4 hidden">
+                
+                <!-- Search & Filter Controls -->
+                <div class="space-y-2">
+                    <!-- Search Input -->
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                        <input type="text" id="extrato-search" onkeyup="filterTransactions()" placeholder="Buscar por descrição, categoria..." class="w-full pl-9 pr-4 py-2.5 rounded-xl bg-cardBg border border-slate-800 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+                    </div>
+
+                    <!-- Filter Chips (Horizontal Scroll) -->
+                    <div class="flex space-x-2 overflow-x-auto no-scrollbar py-1 text-xs">
+                        <button onclick="setFilter('todos', this)" class="filter-chip px-3 py-1.5 rounded-xl font-medium bg-emerald-500 text-slate-950 whitespace-nowrap">
+                            Todos
+                        </button>
+                        <button onclick="setFilter('entradas', this)" class="filter-chip px-3 py-1.5 rounded-xl font-medium bg-cardBg border border-slate-800 text-slate-400 hover:text-slate-200 whitespace-nowrap">
+                            Entradas
+                        </button>
+                        <button onclick="setFilter('saidas', this)" class="filter-chip px-3 py-1.5 rounded-xl font-medium bg-cardBg border border-slate-800 text-slate-400 hover:text-slate-200 whitespace-nowrap">
+                            Saídas
+                        </button>
+                        <button onclick="setFilter('alimentacao', this)" class="filter-chip px-3 py-1.5 rounded-xl font-medium bg-cardBg border border-slate-800 text-slate-400 hover:text-slate-200 whitespace-nowrap">
+                            Alimentação
+                        </button>
+                        <button onclick="setFilter('transporte', this)" class="filter-chip px-3 py-1.5 rounded-xl font-medium bg-cardBg border border-slate-800 text-slate-400 hover:text-slate-200 whitespace-nowrap">
+                            Transporte
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Monthly Balance Trend Chart -->
+                <div class="p-4 rounded-2xl bg-cardBg border border-slate-800">
+                    <div class="flex justify-between items-center mb-3">
+                        <div>
+                            <h3 class="text-xs font-bold text-slate-200">Tendência de Gastos Diários</h3>
+                            <p class="text-[10px] text-slate-400">Outubro 2026</p>
+                        </div>
+                        <span class="text-xs font-bold text-slate-300">Média: R$ 104/dia</span>
+                    </div>
+                    <div class="h-32 w-full">
+                        <canvas id="trendAreaChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Category Limits & Progress Bars -->
+                <div class="p-4 rounded-2xl bg-cardBg border border-slate-800 space-y-3">
+                    <h3 class="text-xs font-bold text-slate-200">Limites por Categoria</h3>
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-slate-300 font-medium"><i class="fa-solid fa-utensils text-amber-400 mr-1.5"></i> Alimentação</span>
+                                <span class="text-slate-400 font-semibold sensitive-data">R$ 850 / R$ 1.200</span>
+                            </div>
+                            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                                <div class="bg-amber-400 h-full rounded-full" style="width: 70.8%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-slate-300 font-medium"><i class="fa-solid fa-car text-blue-400 mr-1.5"></i> Transporte</span>
+                                <span class="text-slate-400 font-semibold sensitive-data">R$ 350 / R$ 500</span>
+                            </div>
+                            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                                <div class="bg-blue-400 h-full rounded-full" style="width: 70%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-slate-300 font-medium"><i class="fa-solid fa-gamepad text-rose-400 mr-1.5"></i> Lazer</span>
+                                <span class="text-rose-400 font-bold sensitive-data">R$ 410 / R$ 400 (Excedido)</span>
+                            </div>
+                            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                                <div class="bg-rose-500 h-full rounded-full" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Complete Grouped Transactions List -->
+                <div class="space-y-3" id="extrato-full-list">
+                    <!-- Rendered dynamically via JS -->
+                </div>
+
+            </section>
+
+            <!-- ========================================== -->
+            <!-- TAB 3: CONFIRMAÇÃO (NOVO LANÇAMENTO / SLIDER) -->
+            <!-- ========================================== -->
+            <section id="tab-confirmacao" class="tab-content space-y-4 hidden">
+                
+                <div class="p-5 rounded-3xl bg-cardBg border border-slate-800 space-y-5 text-center relative overflow-hidden">
+                    <div class="inline-flex items-center px-3 py-1 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 text-xs font-semibold">
+                        <i class="fa-solid fa-arrow-up-right mr-1.5"></i> Registro de Despesa
+                    </div>
+
+                    <!-- Amount Highlight -->
+                    <div>
+                        <p class="text-xs text-slate-400 mb-1">Valor do Lançamento</p>
+                        <h2 class="text-4xl font-extrabold text-slate-100 tracking-tight" id="confirm-amount">
+                            R$ 150,00
+                        </h2>
+                    </div>
+
+                    <!-- Transaction Details Table Card -->
+                    <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800/80 text-left space-y-3 text-xs">
+                        <div class="flex justify-between py-1 border-b border-slate-800/60">
+                            <span class="text-slate-400">Descrição/Estabelecimento</span>
+                            <span class="font-semibold text-slate-200" id="confirm-desc">Supermercado Carrefour</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-slate-800/60">
+                            <span class="text-slate-400">Categoria</span>
+                            <span class="font-semibold text-amber-400" id="confirm-cat"><i class="fa-solid fa-utensils mr-1"></i> Alimentação</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-slate-800/60">
+                            <span class="text-slate-400">Conta / Origem</span>
+                            <span class="font-semibold text-slate-200" id="confirm-account">Cartão de Crédito Nubank</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-slate-800/60">
+                            <span class="text-slate-400">Data</span>
+                            <span class="font-semibold text-slate-200">Hoje, 21 de Outubro</span>
+                        </div>
+                        <div class="flex justify-between py-1">
+                            <span class="text-slate-400">Status</span>
+                            <span class="font-semibold text-emerald-400"><i class="fa-solid fa-clock mr-1"></i> Aguardando Confirmação</span>
+                        </div>
+                    </div>
+
+                    <!-- Interactive "Slide to Confirm" Component -->
+                    <div class="pt-2">
+                        <p class="text-[11px] text-slate-400 mb-2 font-medium">Deslize o botão para registrar no extrato</p>
+                        
+                        <div id="slide-container" class="relative w-full h-14 bg-slate-900 rounded-full border border-slate-800 p-1 flex items-center justify-center overflow-hidden select-none">
+                            <div id="slider-track" class="absolute left-0 top-0 bottom-0 w-0 slider-track rounded-full transition-all duration-75"></div>
+                            
+                            <span id="slide-text" class="text-xs font-semibold text-slate-400 z-10 pointer-events-none transition-opacity">
+                                Deslize para Confirmar <i class="fa-solid fa-chevron-right ml-1 opacity-60"></i>
+                            </span>
+
+                            <div id="slider-button" class="absolute left-1 w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-slate-950 font-bold cursor-grab active:cursor-grabbing shadow-lg transition-transform z-20">
+                                <i class="fa-solid fa-angles-right text-base"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alternative Biometric / Instant Button -->
+                    <button onclick="executeConfirmation()" class="w-full py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center justify-center space-x-2 border border-slate-700/50 transition-colors">
+                        <i class="fa-solid fa-fingerprint text-emerald-400 text-sm"></i>
+                        <span>Confirmar com Biometria</span>
+                    </button>
+                </div>
+
+                <!-- Banner Tips -->
+                <div class="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs flex items-start space-x-2.5">
+                    <i class="fa-solid fa-lightbulb text-blue-400 mt-0.5"></i>
+                    <div>
+                        <p class="font-semibold">Dica de Gestão:</p>
+                        <p class="text-[11px] opacity-80">Confirmar seus lançamentos diariamente garante que seus relatórios e limites por categoria fiquem sempre atualizados.</p>
+                    </div>
+                </div>
+
+            </section>
+
+        </main>
+
+        <!-- Android Bottom Bar / Indicator -->
+        <div class="py-2 flex justify-center items-center bg-darkBg border-t border-slate-900 z-20">
+            <div class="w-32 h-1 bg-slate-700/60 rounded-full"></div>
+        </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL FOR NEW MANUAL TRANSACTION -->
+    <!-- ========================================== -->
+    <div id="new-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-0 md:p-4 hidden transition-opacity">
+        <div class="w-full max-w-md bg-cardBg rounded-t-3xl md:rounded-3xl border border-slate-800 p-5 space-y-4 animate-in slide-in-from-bottom duration-200">
+            
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-slate-100" id="modal-title">Novo Lançamento Financeiro</h3>
+                <button onclick="closeNewModal()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-slate-200 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="transaction-form" onsubmit="handleFormSubmit(event)" class="space-y-3">
+                <!-- Type Selector -->
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="type" value="despesa" checked class="peer hidden" onchange="updateModalType('despesa')">
+                        <div class="py-2 text-center rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-400 peer-checked:bg-rose-500/20 peer-checked:border-rose-500 peer-checked:text-rose-400 transition-all">
+                            <i class="fa-solid fa-minus mr-1"></i> Despesa
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="type" value="receita" class="peer hidden" onchange="updateModalType('receita')">
+                        <div class="py-2 text-center rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-400 peer-checked:bg-emerald-500/20 peer-checked:border-emerald-500 peer-checked:text-emerald-400 transition-all">
+                            <i class="fa-solid fa-plus mr-1"></i> Receita
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Amount Input -->
+                <div>
+                    <label class="block text-[11px] font-medium text-slate-400 mb-1">Valor (R$)</label>
+                    <input type="number" step="0.01" id="form-amount" required placeholder="0,00" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm font-bold focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <!-- Description Input -->
+                <div>
+                    <label class="block text-[11px] font-medium text-slate-400 mb-1">Descrição / Local</label>
+                    <input type="text" id="form-desc" required placeholder="Ex: Supermercado, Salário, Uber" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-100 focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <!-- Category Input -->
+                <div>
+                    <label class="block text-[11px] font-medium text-slate-400 mb-1">Categoria</label>
+                    <select id="form-category" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-100 focus:outline-none focus:border-emerald-500">
+                        <option value="Alimentação">Alimentação</option>
+                        <option value="Transporte">Transporte</option>
+                        <option value="Moradia">Moradia</option>
+                        <option value="Lazer">Lazer</option>
+                        <option value="Renda / Salário">Renda / Salário</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+
+                <!-- Account Input -->
+                <div>
+                    <label class="block text-[11px] font-medium text-slate-400 mb-1">Conta / Cartão</label>
+                    <select id="form-account" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-100 focus:outline-none focus:border-emerald-500">
+                        <option value="Carteira Principal">Carteira Principal</option>
+                        <option value="Cartão de Crédito Nubank">Cartão de Crédito Nubank</option>
+                        <option value="Conta Corrente Itaú">Conta Corrente Itaú</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold transition-colors">
+                    Continuar para Confirmação
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT APP LOGIC -->
+    <script>
+        // Sample Initial Financial Data
+        let transactions = [
+            { id: 1, type: 'despesa', desc: 'Supermercado Carrefour', category: 'Alimentação', account: 'Cartão Nubank', amount: 150.00, date: 'Hoje, 14:20', icon: 'fa-utensils', iconColor: 'text-amber-400 bg-amber-400/10' },
+            { id: 2, type: 'despesa', desc: 'Posto Shell - Combustível', category: 'Transporte', account: 'Itaú', amount: 220.00, date: 'Hoje, 09:15', icon: 'fa-car', iconColor: 'text-blue-400 bg-blue-400/10' },
+            { id: 3, type: 'receita', desc: 'Projeto Freelance UX', category: 'Renda / Salário', account: 'Itaú', amount: 1850.00, date: 'Ontem', icon: 'fa-briefcase', iconColor: 'text-emerald-400 bg-emerald-400/10' },
+            { id: 4, type: 'despesa', desc: 'Assinatura Netflix & Spotify', category: 'Lazer', account: 'Cartão Nubank', amount: 75.90, date: '20 Out', icon: 'fa-tv', iconColor: 'text-rose-400 bg-rose-400/10' },
+            { id: 5, type: 'despesa', desc: 'Restaurante Outback', category: 'Alimentação', account: 'Cartão Nubank', amount: 185.00, date: '19 Out', icon: 'fa-utensils', iconColor: 'text-amber-400 bg-amber-400/10' }
+        ];
+
+        let currentPrivacy = false;
+        let donutChart, trendChart;
+
+        // Initialize App
+        window.addEventListener('load', () => {
+            renderTransactions();
+            initCharts();
+            initSlider();
+        });
+
+        // Tab Switching Logic
+        function switchTab(tabName) {
+            const tabs = ['dashboard', 'extrato', 'confirmacao'];
+            
+            tabs.forEach(tab => {
+                const content = document.getElementById(`tab-${tab}`);
+                const btn = document.getElementById(`tab-btn-${tab}`);
+                
+                if (tab === tabName) {
+                    content.classList.remove('hidden');
+                    btn.classList.add('bg-cardBg', 'text-emerald-400', 'shadow-sm');
+                    btn.classList.remove('text-slate-400');
+                } else {
+                    content.classList.add('hidden');
+                    btn.classList.remove('bg-cardBg', 'text-emerald-400', 'shadow-sm');
+                    btn.classList.add('text-slate-400');
+                }
+            });
+        }
+
+        // Privacy Toggle Logic (Eye Icon)
+        function togglePrivacy() {
+            currentPrivacy = !currentPrivacy;
+            const eyeIcon = document.getElementById('eye-icon');
+            const sensitiveElements = document.querySelectorAll('.sensitive-data');
+
+            if (currentPrivacy) {
+                eyeIcon.classList.replace('fa-eye', 'fa-eye-slash');
+                sensitiveElements.forEach(el => {
+                    el.dataset.originalText = el.innerText;
+                    el.innerText = '••••••';
+                });
+            } else {
+                eyeIcon.classList.replace('fa-eye-slash', 'fa-eye');
+                sensitiveElements.forEach(el => {
+                    if (el.dataset.originalText) {
+                        el.innerText = el.dataset.originalText;
+                    }
+                });
+            }
+        }
+
+        // Render Transaction Lists
+        function renderTransactions(filterType = 'todos', keyword = '') {
+            const recentList = document.getElementById('recent-transactions-list');
+            const fullList = document.getElementById('extrato-full-list');
+
+            let filtered = transactions.filter(t => {
+                const matchKeyword = t.desc.toLowerCase().includes(keyword.toLowerCase()) || t.category.toLowerCase().includes(keyword.toLowerCase());
+                if (filterType === 'todos') return matchKeyword;
+                if (filterType === 'entradas') return matchKeyword && t.type === 'receita';
+                if (filterType === 'saidas') return matchKeyword && t.type === 'despesa';
+                if (filterType === 'alimentacao') return matchKeyword && t.category === 'Alimentação';
+                if (filterType === 'transporte') return matchKeyword && t.category === 'Transporte';
+                return matchKeyword;
+            });
+
+            // Render Recent 3 for Dashboard
+            recentList.innerHTML = transactions.slice(0, 3).map(t => createTransactionItemHTML(t)).join('');
+
+            // Render Full List for Extrato
+            if (filtered.length === 0) {
+                fullList.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">Nenhum lançamento encontrado para este filtro.</p>`;
+            } else {
+                fullList.innerHTML = filtered.map(t => createTransactionItemHTML(t)).join('');
+            }
+        }
+
+        function createTransactionItemHTML(t) {
+            const isIncome = t.type === 'receita';
+            const valClass = isIncome ? 'text-emerald-400' : 'text-slate-200';
+            const prefix = isIncome ? '+ R$ ' : '- R$ ';
+            
+            return `
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/60 hover:border-slate-700 transition-all">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-9 h-9 rounded-xl ${t.iconColor} flex items-center justify-center text-xs">
+                            <i class="fa-solid ${t.icon}"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-slate-200">${t.desc}</p>
+                            <p class="text-[10px] text-slate-400">${t.category} • ${t.date}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs font-bold ${valClass} sensitive-data">${prefix}${t.amount.toFixed(2).replace('.', ',')}</p>
+                        <p class="text-[9px] text-slate-500">${t.account}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Extrato Filter Functions
+        function setFilter(type, btn) {
+            document.querySelectorAll('.filter-chip').forEach(c => {
+                c.classList.remove('bg-emerald-500', 'text-slate-950');
+                c.classList.add('bg-cardBg', 'border', 'border-slate-800', 'text-slate-400');
+            });
+            btn.classList.remove('bg-cardBg', 'border', 'border-slate-800', 'text-slate-400');
+            btn.classList.add('bg-emerald-500', 'text-slate-950');
+            
+            renderTransactions(type, document.getElementById('extrato-search').value);
+        }
+
+        function filterTransactions() {
+            const keyword = document.getElementById('extrato-search').value;
+            renderTransactions('todos', keyword);
+        }
+
+        // Initialize Chart.js Data Visualizations
+        function initCharts() {
+            // Donut Chart for Categories
+            const ctxDonut = document.getElementById('categoryDonutChart').getContext('2d');
+            donutChart = new Chart(ctxDonut, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Alimentação', 'Transporte', 'Lazer', 'Moradia'],
+                    datasets: [{
+                        data: [1035, 350, 410, 1325],
+                        backgroundColor: ['#F59E0B', '#3B82F6', '#EF4444', '#8B5CF6'],
+                        borderWidth: 0,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    cutout: '72%'
+                }
+            });
+
+            // Trend Area Chart for Daily Spending
+            const ctxTrend = document.getElementById('trendAreaChart').getContext('2d');
+            trendChart = new Chart(ctxTrend, {
+                type: 'line',
+                data: {
+                    labels: ['01', '05', '10', '15', '20', '25', '30'],
+                    datasets: [{
+                        label: 'Gastos (R$)',
+                        data: [120, 450, 200, 890, 310, 600, 550],
+                        borderColor: '#10B981',
+                        borderWidth: 2,
+                        fill: true,
+                        backgroundColor: (context) => {
+                            const ctx = context.chart.ctx;
+                            const gradient = ctx.createLinearGradient(0, 0, 0, 120);
+                            gradient.addColorStop(0, 'rgba(16, 185, 129, 0.3)');
+                            gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+                            return gradient;
+                        },
+                        tension: 0.4,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#64748B', font: { size: 9 } } },
+                        y: { display: false }
+                    }
+                }
+            });
+        }
+
+        // Slide To Confirm Interactive Handler
+        function initSlider() {
+            const button = document.getElementById('slider-button');
+            const container = document.getElementById('slide-container');
+            const track = document.getElementById('slider-track');
+            const slideText = document.getElementById('slide-text');
+
+            let isDragging = false;
+            let startX = 0;
+            let maxSlide = 0;
+
+            const onStart = (e) => {
+                isDragging = true;
+                startX = (e.touches ? e.touches[0].clientX : e.clientX) - button.offsetLeft;
+                maxSlide = container.clientWidth - button.clientWidth - 8;
+            };
+
+            const onMove = (e) => {
+                if (!isDragging) return;
+                let currentX = (e.touches ? e.touches[0].clientX : e.clientX) - startX;
+                currentX = Math.max(4, Math.min(currentX, maxSlide));
+
+                button.style.transform = `translateX(${currentX}px)`;
+                track.style.width = `${currentX + 20}px`;
+
+                const opacity = 1 - (currentX / maxSlide);
+                slideText.style.opacity = opacity;
+
+                if (currentX >= maxSlide - 5) {
+                    isDragging = false;
+                    executeConfirmation();
+                    resetSlider();
+                }
+            };
+
+            const onEnd = () => {
+                if (!isDragging) return;
+                isDragging = false;
+                button.style.transform = `translateX(0px)`;
+                track.style.width = `0px`;
+                slideText.style.opacity = 1;
+            };
+
+            button.addEventListener('mousedown', onStart);
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('mouseup', onEnd);
+
+            button.addEventListener('touchstart', onStart);
+            window.addEventListener('touchmove', onMove);
+            window.addEventListener('touchend', onEnd);
+        }
+
+        function resetSlider() {
+            const button = document.getElementById('slider-button');
+            const track = document.getElementById('slider-track');
+            const slideText = document.getElementById('slide-text');
+
+            button.style.transform = `translateX(0px)`;
+            track.style.width = `0px`;
+            slideText.style.opacity = 1;
+        }
+
+        // Execute Confirmation Action
+        function executeConfirmation() {
+            alert('✅ Lançamento confirmado e registrado com sucesso!');
+            switchTab('extrato');
+        }
+
+        // Modal Controls
+        function openNewModal(defaultType = 'despesa') {
+            document.getElementById('new-modal').classList.remove('hidden');
+            const radio = document.querySelector(`input[name="type"][value="${defaultType}"]`);
+            if (radio) {
+                radio.checked = true;
+                updateModalType(defaultType);
+            }
+        }
+
+        function closeNewModal() {
+            document.getElementById('new-modal').classList.add('hidden');
+        }
+
+        function updateModalType(type) {
+            const title = document.getElementById('modal-title');
+            title.innerText = type === 'despesa' ? 'Nova Despesa' : 'Nova Receita';
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const type = document.querySelector('input[name="type"]:checked').value;
+            const amount = parseFloat(document.getElementById('form-amount').value);
+            const desc = document.getElementById('form-desc').value;
+            const category = document.getElementById('form-category').value;
+            const account = document.getElementById('form-account').value;
+
+            // Prepare Confirmation Screen
+            document.getElementById('confirm-amount').innerText = `R$ ${amount.toFixed(2).replace('.', ',')}`;
+            document.getElementById('confirm-desc').innerText = desc;
+            document.getElementById('confirm-cat').innerText = category;
+            document.getElementById('confirm-account').innerText = account;
+
+            // Prepend transaction to local state
+            transactions.unshift({
+                id: Date.now(),
+                type: type,
+                desc: desc,
+                category: category,
+                account: account,
+                amount: amount,
+                date: 'Hoje, Agora',
+                icon: type === 'receita' ? 'fa-arrow-down-left' : 'fa-receipt',
+                iconColor: type === 'receita' ? 'text-emerald-400 bg-emerald-400/10' : 'text-rose-400 bg-rose-400/10'
+            });
+
+            renderTransactions();
+            closeNewModal();
+            switchTab('confirmacao');
+        }
+    </script>
+</body>
+</html>
