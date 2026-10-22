@@ -89,24 +89,24 @@
                 </div>
 
                 <div class="flex items-center space-x-2">
-                    <!-- Botão de Alternância de Tema (Dark / Light) -->
+                    <!-- Alternar Tema -->
                     <button id="theme-toggle" onclick="toggleTheme()" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-cardBg hover:bg-slate-200 dark:hover:bg-cardHover flex items-center justify-center transition-colors border border-slate-200 dark:border-slate-800" title="Alternar Tema">
                         <i id="theme-icon" class="fa-solid fa-sun text-amber-400"></i>
                     </button>
 
-                    <!-- Botão Ocultar/Exibir Valores (Privacidade) -->
+                    <!-- Ocultar/Exibir Valores (Privacidade) -->
                     <button id="toggle-privacy" onclick="togglePrivacy()" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-cardBg hover:bg-slate-200 dark:hover:bg-cardHover flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors border border-slate-200 dark:border-slate-800" title="Ocultar/Exibir Valores">
                         <i id="eye-icon" class="fa-solid fa-eye"></i>
                     </button>
 
-                    <!-- Botão Adicionar Lançamento -->
+                    <!-- Novo Lançamento -->
                     <button onclick="openNewModal()" class="w-9 h-9 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/30 flex items-center justify-center transition-colors border border-emerald-500/30" title="Adicionar Lançamento">
                         <i class="fa-solid fa-plus text-sm"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- Seletor de Abas Segmentadas -->
+            <!-- Abas Segmentadas -->
             <nav class="grid grid-cols-3 gap-1 p-1 bg-slate-100 dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800/60 transition-colors duration-200">
                 <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="py-2 text-xs font-semibold rounded-xl transition-all duration-200 text-emerald-600 dark:text-emerald-400 bg-white dark:bg-cardBg shadow-sm">
                     Dashboard
@@ -120,7 +120,7 @@
             </nav>
         </header>
 
-        <!-- CONTEÚDO PRINCIPAL ROLÁVEL -->
+        <!-- CONTEÚDO PRINCIPAL -->
         <main class="flex-1 overflow-y-auto no-scrollbar relative p-4 space-y-4">
 
             <!-- ========================================== -->
@@ -134,8 +134,6 @@
                     
                     <div class="flex justify-between items-start mb-2">
                         <span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Saldo Total Consolidado</span>
-                        
-                        <!-- Comparativo com o Mês Anterior -->
                         <span id="dash-comparativo-mes" class="px-2 py-0.5 text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full border border-emerald-500/20">
                             Calculando...
                         </span>
@@ -145,7 +143,7 @@
                         R$ 0,00
                     </div>
 
-                    <!-- Resumo Receitas e Despesas -->
+                    <!-- Resumo Receitas e Despesas do Mês -->
                     <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100 dark:border-slate-800/80">
                         <div class="flex items-center space-x-2.5">
                             <div class="w-8 h-8 rounded-full bg-emerald-500/15 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-xs">
@@ -185,7 +183,6 @@
                         <span class="text-[11px] font-medium text-slate-700 dark:text-slate-300">Despesa</span>
                     </button>
 
-                    <!-- Ação Rápida: Gestão de Categorias (RF-01) -->
                     <button onclick="abrirModalCategorias()" class="flex flex-col items-center p-3 rounded-2xl bg-white dark:bg-cardBg hover:bg-slate-50 dark:hover:bg-cardHover border border-slate-200 dark:border-slate-800 transition-all text-center group shadow-sm" title="Gerenciar Categorias">
                         <div class="w-10 h-10 rounded-full bg-blue-500/10 group-hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-1.5 transition-colors">
                             <i class="fa-solid fa-tags text-sm"></i>
@@ -193,7 +190,6 @@
                         <span class="text-[11px] font-medium text-slate-700 dark:text-slate-300">Categorias</span>
                     </button>
 
-                    <!-- Ação Rápida: Backup SQLite (RF-04) -->
                     <button onclick="exportarArquivoSQLite()" class="flex flex-col items-center p-3 rounded-2xl bg-white dark:bg-cardBg hover:bg-slate-50 dark:hover:bg-cardHover border border-slate-200 dark:border-slate-800 transition-all text-center group shadow-sm" title="Baixar Backup do SQLite">
                         <div class="w-10 h-10 rounded-full bg-purple-500/10 group-hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-1.5 transition-colors">
                             <i class="fa-solid fa-download text-sm"></i>
@@ -278,7 +274,7 @@
                     </div>
                 </div>
 
-                <!-- Lançamentos Recentes -->
+                <!-- Lançamentos Recentes no Dashboard -->
                 <div class="p-4 rounded-2xl bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm">
                     <div class="flex justify-between items-center">
                         <h3 class="text-xs font-bold text-slate-800 dark:text-slate-200">Lançamentos Recentes</h3>
@@ -293,14 +289,29 @@
             </section>
 
             <!-- ========================================== -->
-            <!-- TAB 2: EXTRATO -->
+            <!-- TAB 2: EXTRATO (COM NAVEGAÇÃO DE MÊS, BUSCA E AÇÕES) -->
             <!-- ========================================== -->
             <section id="tab-extrato" class="tab-content space-y-4 hidden">
-                <!-- Busca e Filtros -->
+                
+                <!-- Seletor de Período (Mês / Ano) -->
+                <div class="flex items-center justify-between p-2.5 rounded-2xl bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <button onclick="mudarMes(-1)" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-colors">
+                        <i class="fa-solid fa-chevron-left text-xs"></i>
+                    </button>
+                    <div class="text-center">
+                        <span id="extrato-mes-display" class="text-xs font-bold text-slate-800 dark:text-slate-200">Mês Atual</span>
+                        <p id="extrato-mes-subtotal" class="text-[10px] text-slate-500 dark:text-slate-400">Receitas: R$ 0 • Despesas: R$ 0</p>
+                    </div>
+                    <button onclick="mudarMes(1)" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-colors">
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- Busca e Chips de Filtro -->
                 <div class="space-y-2">
                     <div class="relative">
                         <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" id="extrato-search" onkeyup="filtrarExtrato()" placeholder="Buscar por descrição ou categoria..." class="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-emerald-500">
+                        <input type="text" id="extrato-search" onkeyup="filtrarExtrato()" placeholder="Buscar por descrição, categoria ou conta..." class="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-emerald-500">
                     </div>
 
                     <div class="flex space-x-2 overflow-x-auto no-scrollbar py-1 text-xs" id="extrato-chips-container">
@@ -313,6 +324,12 @@
                         <button onclick="setExtratoFilter('despesa', this)" class="filter-chip px-3 py-1.5 rounded-xl font-medium bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 whitespace-nowrap">
                             Despesas
                         </button>
+                        <button onclick="setExtratoFilter('Pendente', this)" class="filter-chip px-3 py-1.5 rounded-xl font-medium bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800 text-amber-500 dark:text-amber-400 hover:text-slate-900 dark:hover:text-slate-200 whitespace-nowrap">
+                            Pendentes
+                        </button>
+                        <button onclick="setExtratoFilter('Pago', this)" class="filter-chip px-3 py-1.5 rounded-xl font-medium bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800 text-emerald-500 dark:text-emerald-400 hover:text-slate-900 dark:hover:text-slate-200 whitespace-nowrap">
+                            Efetivados
+                        </button>
                     </div>
                 </div>
 
@@ -321,7 +338,7 @@
                     <div class="flex justify-between items-center mb-3">
                         <div>
                             <h3 class="text-xs font-bold text-slate-800 dark:text-slate-200">Tendência de Gastos Diários</h3>
-                            <p class="text-[10px] text-slate-500 dark:text-slate-400" id="extrato-mes-rotulo">Mês Vigente</p>
+                            <p class="text-[10px] text-slate-500 dark:text-slate-400" id="extrato-mes-rotulo">Mês Selecionado</p>
                         </div>
                     </div>
                     <div class="h-32 w-full">
@@ -329,7 +346,7 @@
                     </div>
                 </div>
 
-                <!-- Lista Completa de Transações -->
+                <!-- Lista Completa de Transações do Mês -->
                 <div class="space-y-2.5" id="extrato-full-list">
                     <p class="text-xs text-slate-400 text-center py-6">Carregando dados do SQLite...</p>
                 </div>
@@ -369,9 +386,13 @@
                             <span class="text-slate-500 dark:text-slate-400">Conta / Cartão</span>
                             <span class="font-semibold text-slate-800 dark:text-slate-200" id="confirm-account">-</span>
                         </div>
-                        <div class="flex justify-between py-1">
-                            <span class="text-slate-500 dark:text-slate-400">Status Inicial</span>
+                        <div class="flex justify-between py-1 border-b border-slate-200 dark:border-slate-800/60">
+                            <span class="text-slate-500 dark:text-slate-400">Status</span>
                             <span class="font-semibold text-amber-500 dark:text-amber-400" id="confirm-status">Pendente</span>
+                        </div>
+                        <div id="confirm-obs-row" class="hidden flex justify-between py-1">
+                            <span class="text-slate-500 dark:text-slate-400">Observações</span>
+                            <span class="font-normal italic text-slate-700 dark:text-slate-300" id="confirm-obs">-</span>
                         </div>
                     </div>
 
@@ -409,10 +430,10 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- MODAL 1: NOVO LANÇAMENTO (RF-02) -->
+    <!-- MODAL 1: NOVO LANÇAMENTO & EDIÇÃO (RF-02) -->
     <!-- ========================================== -->
     <div id="new-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-0 md:p-4 hidden transition-opacity">
-        <div class="w-full max-w-md bg-white dark:bg-cardBg rounded-t-3xl md:rounded-3xl border border-slate-200 dark:border-slate-800 p-5 space-y-4 animate-in slide-in-from-bottom duration-200 shadow-2xl">
+        <div class="w-full max-w-md max-h-[90vh] overflow-y-auto no-scrollbar bg-white dark:bg-cardBg rounded-t-3xl md:rounded-3xl border border-slate-200 dark:border-slate-800 p-5 space-y-4 shadow-2xl">
             
             <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
                 <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100" id="modal-title">Novo Lançamento</h3>
@@ -422,21 +443,25 @@
             </div>
 
             <form id="transaction-form" onsubmit="prepararConfirmacao(event)" class="space-y-3">
+                <input type="hidden" id="form-trans-id" value="">
+
+                <!-- Tipo: Despesa ou Receita -->
                 <div class="grid grid-cols-2 gap-2">
                     <label class="cursor-pointer">
-                        <input type="radio" name="trans_type" value="despesa" checked class="peer hidden" onchange="atualizarTipoModal('despesa')">
+                        <input type="radio" name="trans_type" id="radio-tipo-despesa" value="despesa" checked class="peer hidden" onchange="atualizarTipoModal('despesa')">
                         <div class="py-2 text-center rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-500 dark:text-slate-400 peer-checked:bg-rose-500/20 peer-checked:border-rose-500 peer-checked:text-rose-600 dark:peer-checked:text-rose-400 transition-all">
                             <i class="fa-solid fa-minus mr-1"></i> Despesa
                         </div>
                     </label>
                     <label class="cursor-pointer">
-                        <input type="radio" name="trans_type" value="receita" class="peer hidden" onchange="atualizarTipoModal('receita')">
+                        <input type="radio" name="trans_type" id="radio-tipo-receita" value="receita" class="peer hidden" onchange="atualizarTipoModal('receita')">
                         <div class="py-2 text-center rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-500 dark:text-slate-400 peer-checked:bg-emerald-500/20 peer-checked:border-emerald-500 peer-checked:text-emerald-600 dark:peer-checked:text-emerald-400 transition-all">
                             <i class="fa-solid fa-plus mr-1"></i> Receita
                         </div>
                     </label>
                 </div>
 
+                <!-- Valor e Data de Vencimento -->
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Valor (R$) *</label>
@@ -448,11 +473,13 @@
                     </div>
                 </div>
 
+                <!-- Descrição -->
                 <div>
                     <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Descrição *</label>
                     <input type="text" id="form-descricao" required placeholder="Ex: Supermercado, Aluguel, Salário" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-500">
                 </div>
 
+                <!-- Categoria e Status -->
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Categoria *</label>
@@ -462,7 +489,7 @@
                     </div>
                     <div>
                         <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Status</label>
-                        <select id="form-status" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-500">
+                        <select id="form-status" onchange="verificarStatusPagamento()" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-500">
                             <option value="Pendente">Pendente</option>
                             <option value="Pago">Pago</option>
                             <option value="Recebido">Recebido</option>
@@ -470,9 +497,22 @@
                     </div>
                 </div>
 
+                <!-- Data de Pagamento / Efetivação (Opcional) -->
+                <div id="campo-pagamento-container" class="hidden">
+                    <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Data do Pagamento / Efetivação</label>
+                    <input type="date" id="form-pagamento" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <!-- Conta / Cartão -->
                 <div>
                     <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Conta / Cartão</label>
                     <input type="text" id="form-conta" value="Carteira Principal" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <!-- Observações / Notas Adicionais (RF-02) -->
+                <div>
+                    <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Observações / Notas</label>
+                    <textarea id="form-observacoes" rows="2" placeholder="Observações adicionais (opcional)..." class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-500 resize-none"></textarea>
                 </div>
 
                 <button type="submit" class="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold transition-colors">
@@ -616,7 +656,7 @@
             </div>
 
             <p class="text-xs text-slate-500 dark:text-slate-400">
-                Defina o limite máximo de despesas para o mês vigente. Ele servirá como o termômetro orçamentário do app.
+                Defina o limite máximo de despesas para o mês. Ele servirá como o termômetro orçamentário do app.
             </p>
 
             <form onsubmit="salvarTetoMes(event)" class="space-y-3">
@@ -637,23 +677,35 @@
     <script src="./js/db.js"></script>
 
     <script>
-        // Variáveis de Controle Global
+        // Variáveis de Estado Global
         let privacyMode = false;
         let chartCategoryDonut = null;
         let chartTrendLine = null;
         let pendingTransaction = null;
         let currentFilter = 'todos';
+        let currentYearMonth = getAnoMesAtual(); // Formato YYYY-MM
 
-        // Registro do Service Worker (PWA)
+        function getAnoMesAtual() {
+            const agora = new Date();
+            return `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, '0')}`;
+        }
+
+        function formatarAnoMes(anoMes) {
+            const [ano, mes] = anoMes.split('-');
+            const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            return `${meses[parseInt(mes, 10) - 1]} ${ano}`;
+        }
+
+        // PWA Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                    .then((reg) => console.log('[PWA] Service Worker registrado:', reg.scope))
-                    .catch((err) => console.warn('[PWA] Falha ao registrar Service Worker:', err));
+                    .then((reg) => console.log('[PWA] Service Worker ativo:', reg.scope))
+                    .catch((err) => console.warn('[PWA] Service Worker falhou:', err));
             });
         }
 
-        // Inicialização Principal da Aplicação
+        // Inicialização Principal
         window.addEventListener('load', async () => {
             atualizarRelogio();
             setInterval(atualizarRelogio, 60000);
@@ -684,6 +736,14 @@
             if (clockEl) clockEl.innerText = `${horas}:${minutos}`;
         }
 
+        // Navegação de Mês no Extrato
+        function mudarMes(direcao) {
+            const [ano, mes] = currentYearMonth.split('-').map(Number);
+            const novaData = new Date(ano, mes - 1 + direcao, 1);
+            currentYearMonth = `${novaData.getFullYear()}-${String(novaData.getMonth() + 1).padStart(2, '0')}`;
+            carregarDadosApp();
+        }
+
         // Alternância de Abas
         function switchTab(tabId) {
             ['dashboard', 'extrato', 'confirmacao'].forEach(tab => {
@@ -705,7 +765,7 @@
             }
         }
 
-        // Alternância de Modo Privacidade
+        // Modo Privacidade
         function togglePrivacy() {
             privacyMode = !privacyMode;
             const eye = document.getElementById('eye-icon');
@@ -727,8 +787,11 @@
             }
         }
 
-        // Carrega categorias do SQLite no select do formulário
-        function carregarCategoriasSelect(tipoFiltro = null) {
+        // ==========================================
+        // GESTÃO DE TRANSAÇÕES (RF-02)
+        // ==========================================
+
+        function carregarCategoriasSelect(tipoFiltro = null, categoriaSelecionadaId = null) {
             try {
                 let sql = "SELECT id, nome, tipo FROM categorias";
                 if (tipoFiltro) {
@@ -737,28 +800,189 @@
                 sql += " ORDER BY nome ASC";
                 const categorias = querySQL(sql);
                 const select = document.getElementById('form-categoria');
-                select.innerHTML = categorias.map(c => `<option value="${c.id}">${c.nome} (${c.tipo})</option>`).join('');
+                select.innerHTML = categorias.map(c => `
+                    <option value="${c.id}" ${categoriaSelecionadaId == c.id ? 'selected' : ''}>
+                        ${c.nome} (${c.tipo})
+                    </option>
+                `).join('');
             } catch (e) {
                 console.warn('Categorias ainda não disponíveis:', e);
             }
         }
 
         function atualizarTipoModal(tipo) {
-            document.getElementById('modal-title').innerText = tipo === 'despesa' ? 'Nova Despesa' : 'Nova Receita';
+            const isEdit = !!document.getElementById('form-trans-id').value;
+            document.getElementById('modal-title').innerText = isEdit 
+                ? (tipo === 'despesa' ? 'Editar Despesa' : 'Editar Receita')
+                : (tipo === 'despesa' ? 'Nova Despesa' : 'Nova Receita');
             carregarCategoriasSelect(tipo);
+        }
+
+        function verificarStatusPagamento() {
+            const status = document.getElementById('form-status').value;
+            const container = document.getElementById('campo-pagamento-container');
+            const dataPag = document.getElementById('form-pagamento');
+
+            if (status === 'Pago' || status === 'Recebido') {
+                container.classList.remove('hidden');
+                if (!dataPag.value) {
+                    dataPag.value = document.getElementById('form-vencimento').value || new Date().toISOString().split('T')[0];
+                }
+            } else {
+                container.classList.add('hidden');
+            }
         }
 
         function openNewModal(tipoPadrao = 'despesa') {
             document.getElementById('new-modal').classList.remove('hidden');
-            const radio = document.querySelector(`input[name="trans_type"][value="${tipoPadrao}"]`);
-            if (radio) {
-                radio.checked = true;
-                atualizarTipoModal(tipoPadrao);
+            document.getElementById('form-trans-id').value = '';
+            document.getElementById('modal-title').innerText = tipoPadrao === 'despesa' ? 'Nova Despesa' : 'Nova Receita';
+            document.getElementById('form-valor').value = '';
+            document.getElementById('form-descricao').value = '';
+            document.getElementById('form-vencimento').value = new Date().toISOString().split('T')[0];
+            document.getElementById('form-status').value = 'Pendente';
+            document.getElementById('form-conta').value = 'Carteira Principal';
+            document.getElementById('form-observacoes').value = '';
+            document.getElementById('campo-pagamento-container').classList.add('hidden');
+
+            const radioDesp = document.getElementById('radio-tipo-despesa');
+            const radioRec = document.getElementById('radio-tipo-receita');
+            if (tipoPadrao === 'despesa') {
+                radioDesp.checked = true;
+            } else {
+                radioRec.checked = true;
+            }
+
+            carregarCategoriasSelect(tipoPadrao);
+        }
+
+        function editarTransacao(id) {
+            const t = obterTransacaoPorId(id);
+            if (!t) return;
+
+            document.getElementById('new-modal').classList.remove('hidden');
+            document.getElementById('form-trans-id').value = t.id;
+            document.getElementById('modal-title').innerText = t.tipo === 'despesa' ? 'Editar Despesa' : 'Editar Receita';
+            document.getElementById('form-valor').value = t.valor;
+            document.getElementById('form-descricao').value = t.descricao;
+            document.getElementById('form-vencimento').value = t.data_vencimento;
+            document.getElementById('form-status').value = t.status;
+            document.getElementById('form-conta').value = t.conta || 'Carteira Principal';
+            document.getElementById('form-observacoes').value = t.observacoes || '';
+
+            if (t.tipo === 'despesa') {
+                document.getElementById('radio-tipo-despesa').checked = true;
+            } else {
+                document.getElementById('radio-tipo-receita').checked = true;
+            }
+
+            carregarCategoriasSelect(t.tipo, t.categoria_id);
+            verificarStatusPagamento();
+            if (t.data_pagamento) {
+                document.getElementById('form-pagamento').value = t.data_pagamento;
             }
         }
 
         function closeNewModal() {
             document.getElementById('new-modal').classList.add('hidden');
+        }
+
+        // Prepara dados e abre a tela de revisão / slide to confirm
+        function prepararConfirmacao(e) {
+            e.preventDefault();
+            const id = document.getElementById('form-trans-id').value;
+            const tipo = document.querySelector('input[name="trans_type"]:checked').value;
+            const valor = parseFloat(document.getElementById('form-valor').value);
+            const vencimento = document.getElementById('form-vencimento').value;
+            const descricao = document.getElementById('form-descricao').value.trim();
+            const categoriaId = parseInt(document.getElementById('form-categoria').value);
+            const status = document.getElementById('form-status').value;
+            const dataPagamento = document.getElementById('form-pagamento').value || null;
+            const conta = document.getElementById('form-conta').value.trim() || 'Carteira Principal';
+            const observacoes = document.getElementById('form-observacoes').value.trim();
+
+            const catInfo = querySQL("SELECT nome FROM categorias WHERE id = ?", [categoriaId])[0];
+            const catNome = catInfo ? catInfo.nome : 'Geral';
+
+            pendingTransaction = {
+                id: id ? parseInt(id) : null,
+                tipo,
+                valor,
+                data_vencimento: vencimento,
+                descricao,
+                categoria_id: categoriaId,
+                status,
+                data_pagamento: (status === 'Pago' || status === 'Recebido') ? dataPagamento : null,
+                conta,
+                observacoes
+            };
+
+            // Preenche tela de confirmação
+            document.getElementById('confirm-amount').innerText = `R$ ${valor.toFixed(2).replace('.', ',')}`;
+            document.getElementById('confirm-desc').innerText = descricao;
+            document.getElementById('confirm-cat').innerText = catNome;
+            document.getElementById('confirm-date').innerText = vencimento;
+            document.getElementById('confirm-account').innerText = conta;
+            document.getElementById('confirm-status').innerText = status;
+
+            const obsRow = document.getElementById('confirm-obs-row');
+            if (observacoes) {
+                obsRow.classList.remove('hidden');
+                document.getElementById('confirm-obs').innerText = observacoes;
+            } else {
+                obsRow.classList.add('hidden');
+            }
+
+            const badge = document.getElementById('confirm-badge');
+            if (tipo === 'receita') {
+                badge.className = 'inline-flex items-center px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold';
+                badge.innerHTML = '<i class="fa-solid fa-arrow-down-left mr-1.5"></i> ' + (id ? 'Atualização de Receita' : 'Registro de Receita');
+            } else {
+                badge.className = 'inline-flex items-center px-3 py-1 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-semibold';
+                badge.innerHTML = '<i class="fa-solid fa-arrow-up-right mr-1.5"></i> ' + (id ? 'Atualização de Despesa' : 'Registro de Despesa');
+            }
+
+            closeNewModal();
+            switchTab('confirmacao');
+        }
+
+        // Grava no SQLite local
+        async function salvarLancamentoPendente() {
+            if (!pendingTransaction) {
+                alert('Nenhum lançamento pendente para confirmar.');
+                return;
+            }
+
+            try {
+                await salvarTransacao(pendingTransaction);
+                pendingTransaction = null;
+                carregarDadosApp();
+                switchTab('extrato');
+            } catch (err) {
+                console.error('Erro ao salvar no SQLite:', err);
+                alert('Erro ao gravar no banco SQLite: ' + err.message);
+            }
+        }
+
+        // Ação rápida: Alternar status com 1 toque
+        async function alternarStatusRapido(id) {
+            try {
+                await alternarStatusTransacao(id);
+                carregarDadosApp();
+            } catch (err) {
+                alert('Erro ao alterar status: ' + err.message);
+            }
+        }
+
+        // Excluir lançamento
+        async function deletarTransacao(id) {
+            if (!confirm('Deseja realmente excluir este lançamento?')) return;
+            try {
+                await excluirTransacao(id);
+                carregarDadosApp();
+            } catch (err) {
+                alert('Erro ao excluir: ' + err.message);
+            }
         }
 
         // ==========================================
@@ -959,9 +1183,7 @@
         // GESTÃO DO TETO DE GASTOS (TERMÔMETRO)
         // ==========================================
         function abrirModalTeto() {
-            const hoje = new Date();
-            const anoMes = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
-            const tetoAtual = obterOrcamentoMes(anoMes);
+            const tetoAtual = obterOrcamentoMes(currentYearMonth);
             document.getElementById('input-teto-valor').value = tetoAtual || 4000;
             document.getElementById('modal-teto').classList.remove('hidden');
         }
@@ -972,108 +1194,35 @@
 
         async function salvarTetoMes(e) {
             e.preventDefault();
-            const hoje = new Date();
-            const anoMes = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
             const novoTeto = parseFloat(document.getElementById('input-teto-valor').value);
-
-            await definirOrcamentoMes(anoMes, novoTeto);
+            await definirOrcamentoMes(currentYearMonth, novoTeto);
             fecharModalTeto();
             carregarDadosApp();
         }
 
-        // Prepara dados do formulário e abre a tela de confirmação
-        function prepararConfirmacao(e) {
-            e.preventDefault();
-            const tipo = document.querySelector('input[name="trans_type"]:checked').value;
-            const valor = parseFloat(document.getElementById('form-valor').value);
-            const vencimento = document.getElementById('form-vencimento').value;
-            const descricao = document.getElementById('form-descricao').value;
-            const categoriaId = parseInt(document.getElementById('form-categoria').value);
-            const status = document.getElementById('form-status').value;
-            const conta = document.getElementById('form-conta').value || 'Carteira Principal';
+        // ==========================================
+        // CARREGAMENTO & RENDERIZAÇÃO GERAL (BLOCO 4 & 5)
+        // ==========================================
 
-            const catInfo = querySQL("SELECT nome FROM categorias WHERE id = ?", [categoriaId])[0];
-            const catNome = catInfo ? catInfo.nome : 'Categoria';
-
-            pendingTransaction = {
-                tipo,
-                valor,
-                data_vencimento: vencimento,
-                descricao,
-                categoria_id: categoriaId,
-                status,
-                conta
-            };
-
-            document.getElementById('confirm-amount').innerText = `R$ ${valor.toFixed(2).replace('.', ',')}`;
-            document.getElementById('confirm-desc').innerText = descricao;
-            document.getElementById('confirm-cat').innerText = catNome;
-            document.getElementById('confirm-date').innerText = vencimento;
-            document.getElementById('confirm-account').innerText = conta;
-            document.getElementById('confirm-status').innerText = status;
-
-            const badge = document.getElementById('confirm-badge');
-            if (tipo === 'receita') {
-                badge.className = 'inline-flex items-center px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold';
-                badge.innerHTML = '<i class="fa-solid fa-arrow-down-left mr-1.5"></i> Registro de Receita';
-            } else {
-                badge.className = 'inline-flex items-center px-3 py-1 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-semibold';
-                badge.innerHTML = '<i class="fa-solid fa-arrow-up-right mr-1.5"></i> Registro de Despesa';
-            }
-
-            closeNewModal();
-            switchTab('confirmacao');
-        }
-
-        // Grava transação pendente no SQLite
-        async function salvarLancamentoPendente() {
-            if (!pendingTransaction) {
-                alert('Nenhum lançamento pendente para confirmar.');
-                return;
-            }
-
-            try {
-                await executeSQL(`
-                    INSERT INTO transacoes (tipo, valor, descricao, data_vencimento, categoria_id, status, conta)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                `, [
-                    pendingTransaction.tipo,
-                    pendingTransaction.valor,
-                    pendingTransaction.descricao,
-                    pendingTransaction.data_vencimento,
-                    pendingTransaction.categoria_id,
-                    pendingTransaction.status,
-                    pendingTransaction.conta
-                ]);
-
-                pendingTransaction = null;
-                alert('✅ Lançamento gravado com sucesso no SQLite local!');
-                carregarDadosApp();
-                switchTab('extrato');
-            } catch (err) {
-                console.error('Erro ao salvar no SQLite:', err);
-                alert('Erro ao gravar no banco SQLite: ' + err.message);
-            }
-        }
-
-        // Carrega dados e atualiza Dashboard, Extrato, Termômetro e Comparativo
         function carregarDadosApp() {
             try {
-                const hoje = new Date();
-                const anoMesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
-                
+                // Atualiza label do mês no extrato
+                document.getElementById('extrato-mes-display').innerText = formatarAnoMes(currentYearMonth);
+                document.getElementById('extrato-mes-rotulo').innerText = formatarAnoMes(currentYearMonth);
+
                 // Mês Anterior para cálculo comparativo
-                const dataMesAnterior = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+                const [ano, mes] = currentYearMonth.split('-').map(Number);
+                const dataMesAnterior = new Date(ano, mes - 2, 1);
                 const anoMesAnterior = `${dataMesAnterior.getFullYear()}-${String(dataMesAnterior.getMonth() + 1).padStart(2, '0')}`;
 
-                // Totais Mês Atual
+                // Totais do Mês Selecionado
                 const totais = querySQL(`
                     SELECT 
                         COALESCE(SUM(CASE WHEN tipo = 'receita' THEN valor ELSE 0 END), 0) as total_receitas,
                         COALESCE(SUM(CASE WHEN tipo = 'despesa' THEN valor ELSE 0 END), 0) as total_despesas
                     FROM transacoes
                     WHERE strftime('%Y-%m', data_vencimento) = ?
-                `, [anoMesAtual])[0] || { total_receitas: 0, total_despesas: 0 };
+                `, [currentYearMonth])[0] || { total_receitas: 0, total_despesas: 0 };
 
                 // Totais Mês Anterior
                 const despesasMesAnterior = querySQL(`
@@ -1092,7 +1241,10 @@
                 incomeEl.innerText = `R$ ${totais.total_receitas.toFixed(2).replace('.', ',')}`;
                 expenseEl.innerText = `R$ ${totais.total_despesas.toFixed(2).replace('.', ',')}`;
 
-                // Comparativo com o Mês Anterior (Novo Requisito)
+                document.getElementById('extrato-mes-subtotal').innerText = 
+                    `Receitas: R$ ${totais.total_receitas.toFixed(0)} • Despesas: R$ ${totais.total_despesas.toFixed(0)}`;
+
+                // Comparativo com o Mês Anterior
                 const compEl = document.getElementById('dash-comparativo-mes');
                 if (despesasMesAnterior > 0) {
                     const diffPercent = ((totais.total_despesas - despesasMesAnterior) / despesasMesAnterior) * 100;
@@ -1105,11 +1257,11 @@
                     }
                 } else {
                     compEl.className = 'px-2 py-0.5 text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-full border border-slate-200 dark:border-slate-700';
-                    compEl.innerText = 'Primeiro mês';
+                    compEl.innerText = 'Sem mês anterior';
                 }
 
                 // Termômetro do Teto de Gastos
-                const tetoMes = obterOrcamentoMes(anoMesAtual) || 4000;
+                const tetoMes = obterOrcamentoMes(currentYearMonth) || 4000;
                 const percGasto = (totais.total_despesas / tetoMes) * 100;
                 const progressBar = document.getElementById('teto-progress-bar');
                 const tetoDesc = document.getElementById('teto-description');
@@ -1140,64 +1292,88 @@
         }
 
         function renderizarTransacoes() {
-            const transacoes = querySQL(`
-                SELECT t.*, c.nome as categoria_nome, c.icone as categoria_icone, c.cor as categoria_cor
-                FROM transacoes t
-                LEFT JOIN categorias c ON t.categoria_id = c.id
-                ORDER BY t.data_vencimento DESC, t.id DESC
-            `);
+            // Lançamentos do Mês Atual Selecionado
+            const busca = (document.getElementById('extrato-search').value || '').trim();
+            const transacoes = obterTransacoes({
+                anoMes: currentYearMonth,
+                tipo: (currentFilter === 'receita' || currentFilter === 'despesa') ? currentFilter : null,
+                status: (currentFilter === 'Pendente' || currentFilter === 'Pago') ? currentFilter : null,
+                busca: busca
+            });
 
             const recentList = document.getElementById('recent-transactions-list');
             const fullList = document.getElementById('extrato-full-list');
 
-            if (transacoes.length === 0) {
-                const vazioHtml = `<p class="text-xs text-slate-400 text-center py-6">Nenhum lançamento registrado no SQLite.</p>`;
-                recentList.innerHTML = vazioHtml;
-                fullList.innerHTML = vazioHtml;
-                return;
+            // Renderizar Recentes no Dashboard (geral global)
+            const recentesGlobal = querySQL(`
+                SELECT t.*, c.nome as categoria_nome, c.icone as categoria_icone, c.cor as categoria_cor
+                FROM transacoes t
+                LEFT JOIN categorias c ON t.categoria_id = c.id
+                ORDER BY t.data_vencimento DESC, t.id DESC
+                LIMIT 3
+            `);
+
+            if (recentesGlobal.length === 0) {
+                recentList.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Nenhum lançamento registrado no SQLite.</p>`;
+            } else {
+                recentList.innerHTML = recentesGlobal.map(t => criarItemTransacaoHTML(t, false)).join('');
             }
 
-            recentList.innerHTML = transacoes.slice(0, 3).map(t => criarItemTransacaoHTML(t)).join('');
-            
-            const busca = (document.getElementById('extrato-search').value || '').toLowerCase();
-            const filtradas = transacoes.filter(t => {
-                const matchTipo = (currentFilter === 'todos') || (t.tipo === currentFilter);
-                const matchTexto = t.descricao.toLowerCase().includes(busca) || (t.categoria_nome || '').toLowerCase().includes(busca);
-                return matchTipo && matchTexto;
-            });
-
-            if (filtradas.length === 0) {
-                fullList.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Nenhum resultado para os filtros aplicados.</p>`;
+            // Renderizar Extrato Completo
+            if (transacoes.length === 0) {
+                fullList.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Nenhum lançamento encontrado em ${formatarAnoMes(currentYearMonth)}.</p>`;
             } else {
-                fullList.innerHTML = filtradas.map(t => criarItemTransacaoHTML(t)).join('');
+                fullList.innerHTML = transacoes.map(t => criarItemTransacaoHTML(t, true)).join('');
             }
         }
 
-        function criarItemTransacaoHTML(t) {
+        function criarItemTransacaoHTML(t, mostrarAcoes = true) {
             const isReceita = t.tipo === 'receita';
             const valClass = isReceita ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-800 dark:text-slate-200';
             const prefix = isReceita ? '+ R$ ' : '- R$ ';
-            const statusBadge = t.status === 'Pago' || t.status === 'Recebido' 
-                ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">Efetivado</span>'
-                : '<span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400">Pendente</span>';
+            const isEfetivado = t.status === 'Pago' || t.status === 'Recebido';
+
+            const statusBadge = isEfetivado
+                ? `<span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-medium cursor-pointer hover:bg-emerald-500/20" title="Clique para marcar como Pendente">${t.status} <i class="fa-solid fa-check ml-0.5"></i></span>`
+                : `<span class="text-[9px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 font-medium cursor-pointer hover:bg-amber-500/20" title="Clique para marcar como Efetivado">Pendente <i class="fa-solid fa-clock ml-0.5"></i></span>`;
 
             const valorFormatado = privacyMode ? '••••••' : `${prefix}${t.valor.toFixed(2).replace('.', ',')}`;
 
             return `
-                <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/60 transition-all">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs" style="background-color: ${t.categoria_cor || '#10B981'}20; color: ${t.categoria_cor || '#10B981'}">
-                            <i class="fa-solid ${t.categoria_icone || 'fa-tag'}"></i>
+                <div class="p-3 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/60 shadow-sm transition-all hover:border-slate-300 dark:hover:border-slate-700">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs" style="background-color: ${t.categoria_cor || '#10B981'}20; color: ${t.categoria_cor || '#10B981'}">
+                                <i class="fa-solid ${t.categoria_icone || 'fa-tag'}"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-slate-800 dark:text-slate-200">${t.descricao}</p>
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400">
+                                    ${t.categoria_nome || 'Geral'} • Venc: ${t.data_vencimento}
+                                    ${t.conta ? ` • ${t.conta}` : ''}
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <p class="text-xs font-semibold text-slate-800 dark:text-slate-200">${t.descricao}</p>
-                            <p class="text-[10px] text-slate-500 dark:text-slate-400">${t.categoria_nome || 'Geral'} • Venc: ${t.data_vencimento}</p>
+                        <div class="text-right">
+                            <p class="text-xs font-bold ${valClass} sensitive-data">${valorFormatado}</p>
+                            <div class="mt-1" onclick="alternarStatusRapido(${t.id})">
+                                ${statusBadge}
+                            </div>
                         </div>
                     </div>
-                    <div class="text-right">
-                        <p class="text-xs font-bold ${valClass} sensitive-data">${valorFormatado}</p>
-                        <div class="mt-0.5">${statusBadge}</div>
-                    </div>
+
+                    ${t.observacoes ? `<p class="mt-1.5 pt-1.5 border-t border-slate-100 dark:border-slate-800/60 text-[10px] text-slate-400 italic"><i class="fa-solid fa-note-sticky mr-1"></i>${t.observacoes}</p>` : ''}
+
+                    ${mostrarAcoes ? `
+                        <div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/60 flex justify-end space-x-3 text-xs">
+                            <button onclick="editarTransacao(${t.id})" class="text-slate-400 hover:text-blue-500 text-[11px] flex items-center space-x-1">
+                                <i class="fa-solid fa-pen"></i> <span>Editar</span>
+                            </button>
+                            <button onclick="deletarTransacao(${t.id})" class="text-slate-400 hover:text-rose-500 text-[11px] flex items-center space-x-1">
+                                <i class="fa-solid fa-trash"></i> <span>Excluir</span>
+                            </button>
+                        </div>
+                    ` : ''}
                 </div>
             `;
         }
@@ -1266,14 +1442,15 @@
 
         function atualizarGraficos() {
             try {
+                // Gastos por categoria no mês selecionado
                 const dadosCat = querySQL(`
                     SELECT c.nome, c.cor, SUM(t.valor) as total
                     FROM transacoes t
                     JOIN categorias c ON t.categoria_id = c.id
-                    WHERE t.tipo = 'despesa'
+                    WHERE t.tipo = 'despesa' AND strftime('%Y-%m', t.data_vencimento) = ?
                     GROUP BY c.id
                     ORDER BY total DESC
-                `);
+                `, [currentYearMonth]);
 
                 if (dadosCat.length > 0 && chartCategoryDonut) {
                     chartCategoryDonut.data.labels = dadosCat.map(d => d.nome);
@@ -1281,6 +1458,32 @@
                     chartCategoryDonut.data.datasets[0].backgroundColor = dadosCat.map(d => d.cor || '#10B981');
                     chartCategoryDonut.update();
                     document.getElementById('dash-top-category').innerText = `Maior: ${dadosCat[0].nome}`;
+                } else if (chartCategoryDonut) {
+                    chartCategoryDonut.data.labels = ['Sem Despesas'];
+                    chartCategoryDonut.data.datasets[0].data = [1];
+                    chartCategoryDonut.data.datasets[0].backgroundColor = ['#64748B'];
+                    chartCategoryDonut.update();
+                    document.getElementById('dash-top-category').innerText = `Sem despesas no mês`;
+                }
+
+                // Tendência de gastos por dia no mês selecionado
+                const dadosDias = querySQL(`
+                    SELECT strftime('%d', data_vencimento) as dia, SUM(valor) as total
+                    FROM transacoes
+                    WHERE tipo = 'despesa' AND strftime('%Y-%m', data_vencimento) = ?
+                    GROUP BY dia
+                    ORDER BY dia ASC
+                `, [currentYearMonth]);
+
+                if (chartTrendLine) {
+                    if (dadosDias.length > 0) {
+                        chartTrendLine.data.labels = dadosDias.map(d => d.dia);
+                        chartTrendLine.data.datasets[0].data = dadosDias.map(d => d.total);
+                    } else {
+                        chartTrendLine.data.labels = ['01', '05', '10', '15', '20', '25', '30'];
+                        chartTrendLine.data.datasets[0].data = [0, 0, 0, 0, 0, 0, 0];
+                    }
+                    chartTrendLine.update();
                 }
             } catch (e) {
                 console.warn('Erro ao atualizar gráficos:', e);

@@ -59,18 +59,15 @@ async function initDatabase() {
     if (dbInstance) return dbInstance;
 
     try {
-        // Carrega engine sql.js via WebAssembly
         sqlEngine = await initSqlJs({
             locateFile: (file) => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}`
         });
 
-        // Tenta carregar do IndexedDB local
         const savedBytes = await loadBytesFromIDB();
 
         if (savedBytes && savedBytes.length > 0) {
             dbInstance = new sqlEngine.Database(new Uint8Array(savedBytes));
             console.log('[SQLite] Banco de dados carregado com sucesso do IndexedDB.');
-            // Garante criação de novas tabelas/migrações
             garantirMigracoes(dbInstance);
             await persistirBanco();
         } else {
@@ -91,7 +88,6 @@ async function initDatabase() {
  * Migrações e compatibilidade com bancos já inicializados
  */
 function garantirMigracoes(db) {
-    // Tabela de investimentos
     db.run(`
         CREATE TABLE IF NOT EXISTS investimentos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -119,7 +115,6 @@ function garantirMigracoes(db) {
         );
     `);
 
-    // Atualização de nome da categoria conforme novo requisito
     db.run(`UPDATE categorias SET nome = 'Investimento (Patrimônio)' WHERE nome = 'Investimentos' AND tipo = 'Receita';`);
 }
 
@@ -203,7 +198,6 @@ function criarEstruturaInicial(db) {
     }
     stmt.free();
 
-    // Define orçamento padrão inicial de teste (ex: R$ 4.000 para o mês atual)
     const hoje = new Date();
     const anoMes = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
     db.run(`INSERT OR IGNORE INTO orcamentos (ano_mes, limite_geral) VALUES (?, ?)`, [anoMes, 4000.00]);
@@ -285,6 +279,115 @@ async function excluirCategoria(id) {
         throw new Error(`Não é possível excluir: existem ${uso.count} lançamento(s) vinculados a esta categoria.`);
     }
     await executeSQL("DELETE FROM categorias WHERE id = ?", [id]);
+}
+
+// ==========================================
+// FUNÇÕES DE CRUD: TRANSAÇÕES (RF-02 & BLOCO 3/4)
+// ==========================================
+
+function obterTransacoes({ anoMes = null, tipo = null, status = null, busca = null, categoriaId = null } = {}) {
+    let sql = `
+        SELECT t.*, c.nome as categoria_nome, c.icone as categoria_icone, c.cor as categoria_cor
+        FROM transacoes t
+        LEFT JOIN categorias c ON t.categoria_id = c.id
+        WHERE 1=1
+    `;
+    const params = [];
+
+    if (anoMes) {
+        sql += " AND strftime('%Y-%m', t.data_vencimento) = ?";
+        params.push(anoMes);
+    }
+
+    if (tipo && tipo !== 'todos') {
+        sql += " AND t.tipo = ?";
+        params.push(tipo);
+    }
+
+    if (status && status !== 'todos') {
+        sql += " AND t.status = ?";
+        params.push(status);
+    }
+
+    if (categoriaId) {
+        sql += " AND t.categoria_id = ?";
+        params.push(categoriaId);
+    }
+
+    if (busca && busca.trim()) {
+        sql += " AND (t.descricao LIKE ? OR c.nome LIKE ? OR t.conta LIKE ?)";
+        const termo = `%${busca.trim()}%`;
+        params.push(termo, termo, termo);
+    }
+
+    sql += " ORDER BY t.data_vencimento DESC, t.id DESC";
+    return querySQL(sql, params);
+}
+
+function obterTransacaoPorId(id) {
+    const res = querySQL(`
+        SELECT t.*, c.nome as categoria_nome, c.icone as categoria_icone, c.cor as categoria_cor
+        FROM transacoes t
+        LEFT JOIN categorias c ON t.categoria_id = c.id
+        WHERE t.id = ?
+    `, [id]);
+    return res.length > 0 ? res[0] : null;
+}
+
+async function salvarTransacao({ id, tipo, valor, descricao, data_vencimento, categoria_id, status, data_pagamento, conta, observacoes }) {
+    if (!tipo || !valor || !descricao || !data_vencimento || !categoria_id) {
+        throw new Error('Preencha todos os campos obrigatórios da transação.');
+    }
+
+    status = status || 'Pendente';
+    conta = conta || 'Carteira Principal';
+    observacoes = observacoes || '';
+
+    // Se marcado como Pago/Recebido e não tem data de pagamento, usa a de vencimento
+    if ((status === 'Pago' || status === 'Recebido') && !data_pagamento) {
+        data_pagamento = data_vencimento;
+    }
+
+    if (id) {
+        await executeSQL(`
+            UPDATE transacoes
+            SET tipo = ?, valor = ?, descricao = ?, data_vencimento = ?, categoria_id = ?, status = ?, data_pagamento = ?, conta = ?, observacoes = ?
+            WHERE id = ?
+        `, [tipo, valor, descricao, data_vencimento, categoria_id, status, data_pagamento, conta, observacoes, id]);
+    } else {
+        await executeSQL(`
+            INSERT INTO transacoes (tipo, valor, descricao, data_vencimento, categoria_id, status, data_pagamento, conta, observacoes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [tipo, valor, descricao, data_vencimento, categoria_id, status, data_pagamento, conta, observacoes]);
+    }
+}
+
+async function alternarStatusTransacao(id) {
+    const t = obterTransacaoPorId(id);
+    if (!t) throw new Error('Transação não encontrada.');
+
+    let novoStatus;
+    let novaDataPagamento = t.data_pagamento;
+
+    if (t.status === 'Pendente') {
+        novoStatus = t.tipo === 'receita' ? 'Recebido' : 'Pago';
+        novaDataPagamento = new Date().toISOString().split('T')[0];
+    } else {
+        novoStatus = 'Pendente';
+        novaDataPagamento = null;
+    }
+
+    await executeSQL(`
+        UPDATE transacoes
+        SET status = ?, data_pagamento = ?
+        WHERE id = ?
+    `, [novoStatus, novaDataPagamento, id]);
+
+    return novoStatus;
+}
+
+async function excluirTransacao(id) {
+    await executeSQL("DELETE FROM transacoes WHERE id = ?", [id]);
 }
 
 // ==========================================
