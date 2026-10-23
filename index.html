@@ -443,6 +443,10 @@
                             <span class="text-slate-500 dark:text-slate-400">Status</span>
                             <span class="font-semibold text-amber-500 dark:text-amber-400" id="confirm-status">Pendente</span>
                         </div>
+                        <div id="confirm-serie-row" class="hidden flex justify-between py-1 border-b border-slate-200 dark:border-slate-800/60">
+                            <span class="text-slate-500 dark:text-slate-400">Repetição</span>
+                            <span class="font-semibold text-blue-600 dark:text-blue-400 text-right" id="confirm-serie">-</span>
+                        </div>
                         <div id="confirm-obs-row" class="hidden flex justify-between py-1">
                             <span class="text-slate-500 dark:text-slate-400">Observações</span>
                             <span class="font-normal italic text-slate-700 dark:text-slate-300" id="confirm-obs">-</span>
@@ -514,15 +518,47 @@
                     </label>
                 </div>
 
+                <!-- Repetição: Única / Parcelada / Recorrente (Bloco 8) -->
+                <div id="campo-repeticao-container" class="space-y-2">
+                    <div class="grid grid-cols-3 gap-1 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="trans_repeticao" id="radio-repeticao-unica" value="unica" checked class="peer hidden" onchange="atualizarRepeticaoModal()">
+                            <div class="py-1.5 text-center rounded-lg text-[11px] font-semibold text-slate-500 dark:text-slate-400 peer-checked:bg-white dark:peer-checked:bg-cardBg peer-checked:text-emerald-600 dark:peer-checked:text-emerald-400 peer-checked:shadow-sm transition-all">
+                                <i class="fa-solid fa-circle-dot mr-1"></i>Única
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="trans_repeticao" value="parcelado" class="peer hidden" onchange="atualizarRepeticaoModal()">
+                            <div class="py-1.5 text-center rounded-lg text-[11px] font-semibold text-slate-500 dark:text-slate-400 peer-checked:bg-white dark:peer-checked:bg-cardBg peer-checked:text-emerald-600 dark:peer-checked:text-emerald-400 peer-checked:shadow-sm transition-all">
+                                <i class="fa-solid fa-layer-group mr-1"></i>Parcelada
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="trans_repeticao" value="recorrente" class="peer hidden" onchange="atualizarRepeticaoModal()">
+                            <div class="py-1.5 text-center rounded-lg text-[11px] font-semibold text-slate-500 dark:text-slate-400 peer-checked:bg-white dark:peer-checked:bg-cardBg peer-checked:text-emerald-600 dark:peer-checked:text-emerald-400 peer-checked:shadow-sm transition-all">
+                                <i class="fa-solid fa-repeat mr-1"></i>Recorrente
+                            </div>
+                        </label>
+                    </div>
+
+                    <div id="campo-serie-container" class="hidden p-2.5 rounded-xl bg-blue-500/5 border border-blue-500/20 space-y-1.5">
+                        <div class="flex items-center justify-between gap-3">
+                            <label for="form-serie-quantidade" id="label-serie-quantidade" class="text-[11px] font-medium text-slate-600 dark:text-slate-300">Nº de parcelas</label>
+                            <input type="number" id="form-serie-quantidade" min="2" max="60" step="1" value="2" oninput="atualizarPreviaSerie()" class="w-20 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-bold text-center focus:outline-none focus:border-emerald-500">
+                        </div>
+                        <p id="previa-serie" class="text-[10px] text-blue-600 dark:text-blue-400 font-medium"></p>
+                    </div>
+                </div>
+
                 <!-- Valor e Data de Vencimento -->
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Valor (R$) *</label>
-                        <input type="number" step="0.01" id="form-valor" required placeholder="0,00" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-sm font-bold focus:outline-none focus:border-emerald-500">
+                        <label id="label-valor" class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Valor (R$) *</label>
+                        <input type="number" step="0.01" id="form-valor" required placeholder="0,00" oninput="atualizarPreviaSerie()" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-sm font-bold focus:outline-none focus:border-emerald-500">
                     </div>
                     <div>
-                        <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Vencimento *</label>
-                        <input type="date" id="form-vencimento" required class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:border-emerald-500">
+                        <label id="label-vencimento" class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Vencimento *</label>
+                        <input type="date" id="form-vencimento" required onchange="atualizarPreviaSerie()" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:border-emerald-500">
                     </div>
                 </div>
 
@@ -972,6 +1008,35 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- MODAL 7: ESCOPO DA SÉRIE (BLOCO 8)         -->
+    <!-- ========================================== -->
+    <div id="modal-escopo-serie" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden transition-opacity no-print">
+        <div class="w-full max-w-sm bg-white dark:bg-cardBg rounded-3xl border border-slate-200 dark:border-slate-800 p-5 space-y-4 shadow-2xl">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                    <i id="escopo-icone" class="fa-solid fa-layer-group text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100" id="escopo-titulo">Lançamento em série</h3>
+                    <p class="text-[10px] text-slate-400" id="escopo-subtitulo">-</p>
+                </div>
+            </div>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400" id="escopo-descricao">-</p>
+            <div class="space-y-2">
+                <button id="btn-escopo-este" class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-colors border border-slate-200 dark:border-slate-700/50">
+                    Somente este
+                </button>
+                <button id="btn-escopo-proximos" class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold transition-colors">
+                    Este e os próximos
+                </button>
+                <button id="btn-escopo-cancelar" class="w-full py-2 text-[11px] font-semibold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts da Aplicação -->
     <script src="./js/theme.js"></script>
     <script src="./js/db.js"></script>
@@ -1154,6 +1219,10 @@
                 radioRec.checked = true;
             }
 
+            document.getElementById('campo-repeticao-container').classList.remove('hidden');
+            document.getElementById('radio-repeticao-unica').checked = true;
+            atualizarRepeticaoModal();
+
             carregarCategoriasSelect(tipoPadrao);
         }
 
@@ -1163,7 +1232,13 @@
 
             document.getElementById('new-modal').classList.remove('hidden');
             document.getElementById('form-trans-id').value = t.id;
-            document.getElementById('modal-title').innerText = t.tipo === 'despesa' ? 'Editar Despesa' : 'Editar Receita';
+            document.getElementById('modal-title').innerText = (t.tipo === 'despesa' ? 'Editar Despesa' : 'Editar Receita')
+                + (t.grupo_id ? ` (${t.parcela_atual}/${t.parcela_total})` : '');
+
+            // A repetição só é definida na criação; a edição atua sobre o lançamento (ou a série, via escopo)
+            document.getElementById('campo-repeticao-container').classList.add('hidden');
+            document.getElementById('radio-repeticao-unica').checked = true;
+            atualizarRepeticaoModal();
             document.getElementById('form-valor').value = t.valor;
             document.getElementById('form-descricao').value = t.descricao;
             document.getElementById('form-vencimento').value = t.data_vencimento;
@@ -1188,8 +1263,122 @@
             document.getElementById('new-modal').classList.add('hidden');
         }
 
+        // ==========================================
+        // SÉRIES: PARCELADOS E RECORRENTES (BLOCO 8)
+        // ==========================================
+        function obterRepeticaoSelecionada() {
+            return document.querySelector('input[name="trans_repeticao"]:checked').value;
+        }
+
+        function formatarMesAnoCurto(dataISO) {
+            const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+            const [ano, mes] = dataISO.split('-');
+            return `${meses[parseInt(mes, 10) - 1]}/${ano}`;
+        }
+
+        function atualizarRepeticaoModal() {
+            const repeticao = obterRepeticaoSelecionada();
+            const inputQtd = document.getElementById('form-serie-quantidade');
+            const rotulos = {
+                unica: { valor: 'Valor (R$) *', vencimento: 'Vencimento *' },
+                parcelado: { valor: 'Valor total (R$) *', vencimento: '1º vencimento *', quantidade: 'Nº de parcelas', padrao: 2 },
+                recorrente: { valor: 'Valor mensal (R$) *', vencimento: '1º vencimento *', quantidade: 'Repetir por (meses)', padrao: 12 }
+            }[repeticao];
+
+            document.getElementById('label-valor').innerText = rotulos.valor;
+            document.getElementById('label-vencimento').innerText = rotulos.vencimento;
+            document.getElementById('campo-serie-container').classList.toggle('hidden', repeticao === 'unica');
+            if (repeticao !== 'unica') {
+                document.getElementById('label-serie-quantidade').innerText = rotulos.quantidade;
+                inputQtd.value = rotulos.padrao;
+            }
+            atualizarPreviaSerie();
+        }
+
+        // Resumo da série digitada no formulário, ou null se os dados ainda não forem válidos
+        function calcularResumoSerie() {
+            const repeticao = obterRepeticaoSelecionada();
+            const quantidade = Number(document.getElementById('form-serie-quantidade').value);
+            const valor = parseFloat(document.getElementById('form-valor').value);
+            const vencimento = document.getElementById('form-vencimento').value;
+            if (repeticao === 'unica' || !Number.isInteger(quantidade)
+                || quantidade < LIMITE_SERIE.min || quantidade > LIMITE_SERIE.max || !(valor > 0) || !vencimento) {
+                return null;
+            }
+            const valores = repeticao === 'parcelado' ? dividirEmParcelas(valor, quantidade) : Array(quantidade).fill(valor);
+            return {
+                tipo_serie: repeticao,
+                quantidade,
+                valores,
+                total: repeticao === 'parcelado' ? valor : valor * quantidade,
+                ultimoVencimento: adicionarMeses(vencimento, quantidade - 1)
+            };
+        }
+
+        function descreverSerie(resumo) {
+            const fmt = (v) => `R$ ${v.toFixed(2).replace('.', ',')}`;
+            const parcela = resumo.valores[resumo.valores.length - 1];
+            const primeiraDiferente = resumo.valores[0] !== parcela ? ` (1ª ${fmt(resumo.valores[0])})` : '';
+            const ultimo = formatarMesAnoCurto(resumo.ultimoVencimento);
+            return resumo.tipo_serie === 'parcelado'
+                ? `${resumo.quantidade}x de ${fmt(parcela)}${primeiraDiferente} · última em ${ultimo}`
+                : `${resumo.quantidade} meses de ${fmt(parcela)} · total ${fmt(resumo.total)} · último em ${ultimo}`;
+        }
+
+        function atualizarPreviaSerie() {
+            const previa = document.getElementById('previa-serie');
+            if (obterRepeticaoSelecionada() === 'unica') {
+                previa.innerText = '';
+                return;
+            }
+            const resumo = calcularResumoSerie();
+            previa.innerText = resumo
+                ? descreverSerie(resumo)
+                : `Informe o valor, o vencimento e uma quantidade de ${LIMITE_SERIE.min} a ${LIMITE_SERIE.max}.`;
+        }
+
+        // Pergunta se a ação vale só para o lançamento ou para ele e os seguintes da série
+        function perguntarEscopoSerie(acao, t) {
+            const restantes = contarSerieAPartirDe(t.grupo_id, t.parcela_atual);
+            const ehExclusao = acao === 'excluir';
+
+            document.getElementById('escopo-icone').className = `fa-solid ${t.tipo_serie === 'recorrente' ? 'fa-repeat' : 'fa-layer-group'} text-sm`;
+            document.getElementById('escopo-titulo').innerText = ehExclusao ? 'Excluir lançamento da série' : 'Editar lançamento da série';
+            document.getElementById('escopo-subtitulo').innerText = `${t.descricao} · ${t.parcela_atual}/${t.parcela_total}`;
+            document.getElementById('escopo-descricao').innerText = ehExclusao
+                ? 'Deseja excluir somente este lançamento ou também os próximos da série?'
+                : 'Aplicar valor, descrição, categoria, conta e observações somente a este lançamento ou também aos próximos? Datas e status dos próximos são mantidos.';
+
+            const btnEste = document.getElementById('btn-escopo-este');
+            const btnProximos = document.getElementById('btn-escopo-proximos');
+            const btnCancelar = document.getElementById('btn-escopo-cancelar');
+            btnProximos.innerText = `Este e os próximos (${restantes})`;
+            btnProximos.className = ehExclusao
+                ? 'w-full py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold transition-colors'
+                : 'w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold transition-colors';
+
+            const modal = document.getElementById('modal-escopo-serie');
+            return new Promise((resolve) => {
+                const finalizar = (escopo) => {
+                    modal.classList.add('hidden');
+                    resolve(escopo);
+                };
+                btnEste.onclick = () => finalizar('este');
+                btnProximos.onclick = () => finalizar('proximos');
+                btnCancelar.onclick = () => finalizar(null);
+                modal.classList.remove('hidden');
+            });
+        }
+
+        function seloSerieHTML(t) {
+            if (!t.grupo_id) return '';
+            const icone = t.tipo_serie === 'recorrente' ? 'fa-repeat' : 'fa-layer-group';
+            const titulo = t.tipo_serie === 'recorrente' ? 'Lançamento recorrente' : 'Compra parcelada';
+            return `<span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-bold align-middle" title="${titulo}"><i class="fa-solid ${icone} mr-1 text-[8px]"></i>${t.parcela_atual}/${t.parcela_total}</span>`;
+        }
+
         // Prepara dados e abre a tela de revisão / slide to confirm
-        function prepararConfirmacao(e) {
+        async function prepararConfirmacao(e) {
             e.preventDefault();
             const id = document.getElementById('form-trans-id').value;
             const tipo = document.querySelector('input[name="trans_type"]:checked').value;
@@ -1205,7 +1394,36 @@
             const catInfo = querySQL("SELECT nome FROM categorias WHERE id = ?", [categoriaId])[0];
             const catNome = catInfo ? catInfo.nome : 'Geral';
 
+            // Nova série (parcelada/recorrente)
+            let serie = null;
+            if (!id && obterRepeticaoSelecionada() !== 'unica') {
+                serie = calcularResumoSerie();
+                if (!serie) {
+                    alert(`Informe uma quantidade de ${LIMITE_SERIE.min} a ${LIMITE_SERIE.max}.`);
+                    return;
+                }
+                if (serie.valores.some(v => v <= 0)) {
+                    alert('Valor total insuficiente para a quantidade de parcelas.');
+                    return;
+                }
+            }
+
+            // Edição de um lançamento que pertence a uma série
+            let escopo = 'este';
+            let original = null;
+            if (id) {
+                original = obterTransacaoPorId(parseInt(id));
+                if (original && original.grupo_id && contarSerieAPartirDe(original.grupo_id, original.parcela_atual) > 1) {
+                    escopo = await perguntarEscopoSerie('editar', original);
+                    if (!escopo) return;
+                }
+            }
+
             pendingTransaction = {
+                serie,
+                escopo,
+                grupo_id: original ? original.grupo_id : null,
+                parcela_atual: original ? original.parcela_atual : null,
                 id: id ? parseInt(id) : null,
                 tipo,
                 valor,
@@ -1225,6 +1443,18 @@
             document.getElementById('confirm-date').innerText = vencimento;
             document.getElementById('confirm-account').innerText = conta;
             document.getElementById('confirm-status').innerText = status;
+
+            const serieRow = document.getElementById('confirm-serie-row');
+            if (serie) {
+                serieRow.classList.remove('hidden');
+                document.getElementById('confirm-serie').innerText = descreverSerie(serie);
+            } else if (escopo === 'proximos') {
+                serieRow.classList.remove('hidden');
+                document.getElementById('confirm-serie').innerText =
+                    `Este e os próximos (${contarSerieAPartirDe(original.grupo_id, original.parcela_atual)})`;
+            } else {
+                serieRow.classList.add('hidden');
+            }
 
             const obsRow = document.getElementById('confirm-obs-row');
             if (observacoes) {
@@ -1255,7 +1485,15 @@
             }
 
             try {
-                await salvarTransacao(pendingTransaction);
+                const p = pendingTransaction;
+                if (p.serie) {
+                    await salvarSerieTransacoes({ ...p, tipo_serie: p.serie.tipo_serie, quantidade: p.serie.quantidade });
+                } else {
+                    await salvarTransacao(p);
+                    if (p.escopo === 'proximos') {
+                        await atualizarSerieTransacoes(p.grupo_id, p.parcela_atual + 1, p);
+                    }
+                }
                 pendingTransaction = null;
                 carregarDadosApp();
                 switchTab('extrato');
@@ -1277,9 +1515,20 @@
 
         // Excluir lançamento
         async function deletarTransacao(id) {
-            if (!confirm('Deseja realmente excluir este lançamento?')) return;
+            const t = obterTransacaoPorId(id);
+            let escopo = 'este';
+            if (t && t.grupo_id && contarSerieAPartirDe(t.grupo_id, t.parcela_atual) > 1) {
+                escopo = await perguntarEscopoSerie('excluir', t);
+                if (!escopo) return;
+            } else if (!confirm('Deseja realmente excluir este lançamento?')) {
+                return;
+            }
             try {
-                await excluirTransacao(id);
+                if (escopo === 'proximos') {
+                    await excluirSerieTransacoes(t.grupo_id, t.parcela_atual);
+                } else {
+                    await excluirTransacao(id);
+                }
                 carregarDadosApp();
             } catch (err) {
                 alert('Erro ao excluir: ' + err.message);
@@ -1916,7 +2165,7 @@
                                 <i class="fa-solid ${t.categoria_icone || 'fa-tag'}"></i>
                             </div>
                             <div>
-                                <p class="text-xs font-semibold text-slate-800 dark:text-slate-200">${t.descricao}</p>
+                                <p class="text-xs font-semibold text-slate-800 dark:text-slate-200">${t.descricao}${seloSerieHTML(t)}</p>
                                 <p class="text-[10px] text-slate-500 dark:text-slate-400">
                                     ${t.categoria_nome || 'Geral'} • Venc: ${t.data_vencimento}
                                     ${t.conta ? ` • ${t.conta}` : ''}

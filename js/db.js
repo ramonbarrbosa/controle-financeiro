@@ -7,6 +7,15 @@ const IDB_KEY = 'sqlite_database_bytes';
 let dbInstance = null;
 let sqlEngine = null;
 
+// Colunas de séries de lançamentos (Bloco 8): [nome, tipo SQL]
+const COLUNAS_SERIE = [
+    ['grupo_id', 'TEXT'],
+    ['tipo_serie', 'TEXT'],
+    ['parcela_atual', 'INTEGER'],
+    ['parcela_total', 'INTEGER']
+];
+const LIMITE_SERIE = { min: 2, max: 60 };
+
 /**
  * Abre conexão com o IndexedDB do navegador
  */
@@ -116,6 +125,15 @@ function garantirMigracoes(db) {
     `);
 
     db.run(`UPDATE categorias SET nome = 'Investimento (Patrimônio)' WHERE nome = 'Investimentos' AND tipo = 'Receita';`);
+
+    // Bloco 8: colunas de séries (parcelados e recorrentes) em bancos anteriores
+    const colunasExistentes = db.exec('PRAGMA table_info(transacoes)')[0].values.map(col => col[1]);
+    for (const [nome, tipo] of COLUNAS_SERIE) {
+        if (!colunasExistentes.includes(nome)) {
+            db.run('ALTER TABLE transacoes ADD COLUMN ' + nome + ' ' + tipo);
+        }
+    }
+    db.run('CREATE INDEX IF NOT EXISTS idx_transacoes_grupo ON transacoes(grupo_id)');
 }
 
 /**
@@ -143,7 +161,11 @@ function criarEstruturaInicial(db) {
             data_pagamento DATE,
             conta TEXT DEFAULT 'Carteira Principal',
             observacoes TEXT,
-            criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+            criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+            grupo_id TEXT,
+            tipo_serie TEXT,
+            parcela_atual INTEGER,
+            parcela_total INTEGER
         );
 
         CREATE TABLE IF NOT EXISTS investimentos (
@@ -175,6 +197,7 @@ function criarEstruturaInicial(db) {
         CREATE INDEX IF NOT EXISTS idx_transacoes_tipo ON transacoes(tipo);
         CREATE INDEX IF NOT EXISTS idx_transacoes_status ON transacoes(status);
         CREATE INDEX IF NOT EXISTS idx_investimentos_tipo ON investimentos(tipo);
+        CREATE INDEX IF NOT EXISTS idx_transacoes_grupo ON transacoes(grupo_id);
     `);
 
     // Inserção das Categorias Padrão com ajuste do Investimento (Patrimônio)
@@ -388,6 +411,121 @@ async function alternarStatusTransacao(id) {
 
 async function excluirTransacao(id) {
     await executeSQL("DELETE FROM transacoes WHERE id = ?", [id]);
+}
+
+// ==========================================
+// FUNÇÕES: SÉRIES - PARCELADOS E RECORRENTES (BLOCO 8)
+// ==========================================
+
+/**
+ * Soma meses a uma data YYYY-MM-DD mantendo o dia original, limitado ao último dia do mês
+ * (ex.: 31/01 + 1 mês = 28/02 ou 29/02; 31/01 + 2 meses = 31/03)
+ */
+function adicionarMeses(dataISO, meses) {
+    const [ano, mes, dia] = dataISO.split('-').map(Number);
+    const alvo = new Date(ano, mes - 1 + meses, 1);
+    const ultimoDia = new Date(alvo.getFullYear(), alvo.getMonth() + 1, 0).getDate();
+    return `${alvo.getFullYear()}-${String(alvo.getMonth() + 1).padStart(2, '0')}-${String(Math.min(dia, ultimoDia)).padStart(2, '0')}`;
+}
+
+/**
+ * Divide um valor total em parcelas (em centavos); a diferença do arredondamento vai para a 1ª parcela
+ * (ex.: 100,00 em 3x = 33,34 + 33,33 + 33,33)
+ */
+function dividirEmParcelas(valorTotal, quantidade) {
+    const totalCentavos = Math.round(valorTotal * 100);
+    const base = Math.floor(totalCentavos / quantidade);
+    const resto = totalCentavos - base * quantidade;
+    return Array.from({ length: quantidade }, (_, i) => (i === 0 ? base + resto : base) / 100);
+}
+
+function gerarGrupoId() {
+    if (window.crypto && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+}
+
+/**
+ * Cria todos os lançamentos de uma série de uma vez.
+ * Parcelado: `valor` é o total dividido entre as parcelas. Recorrente: `valor` se repete todo mês.
+ * Só o 1º lançamento recebe o status informado; os demais nascem Pendentes.
+ */
+async function salvarSerieTransacoes({ tipo_serie, quantidade, tipo, valor, descricao, data_vencimento, categoria_id, status, data_pagamento, conta, observacoes }) {
+    if (!tipo || !valor || !descricao || !data_vencimento || !categoria_id) {
+        throw new Error('Preencha todos os campos obrigatórios da transação.');
+    }
+    if (tipo_serie !== 'parcelado' && tipo_serie !== 'recorrente') {
+        throw new Error('Tipo de repetição inválido.');
+    }
+    if (!Number.isInteger(quantidade) || quantidade < LIMITE_SERIE.min || quantidade > LIMITE_SERIE.max) {
+        throw new Error(`A quantidade deve ser de ${LIMITE_SERIE.min} a ${LIMITE_SERIE.max}.`);
+    }
+
+    const valores = tipo_serie === 'parcelado'
+        ? dividirEmParcelas(valor, quantidade)
+        : Array(quantidade).fill(valor);
+    if (valores.some(v => v <= 0)) {
+        throw new Error('Valor total insuficiente para a quantidade de parcelas.');
+    }
+
+    status = status || 'Pendente';
+    conta = conta || 'Carteira Principal';
+    observacoes = observacoes || '';
+    const efetivado = status === 'Pago' || status === 'Recebido';
+    const grupoId = gerarGrupoId();
+
+    dbInstance.run('BEGIN TRANSACTION');
+    const stmt = dbInstance.prepare(`
+        INSERT INTO transacoes (tipo, valor, descricao, data_vencimento, categoria_id, status, data_pagamento, conta, observacoes,
+                                grupo_id, tipo_serie, parcela_atual, parcela_total)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    try {
+        valores.forEach((valorItem, i) => {
+            const vencimento = adicionarMeses(data_vencimento, i);
+            const primeiro = i === 0;
+            stmt.run([
+                tipo, valorItem, descricao, vencimento, categoria_id,
+                primeiro ? status : 'Pendente',
+                primeiro && efetivado ? (data_pagamento || vencimento) : null,
+                conta, observacoes, grupoId, tipo_serie, i + 1, quantidade
+            ]);
+        });
+        dbInstance.run('COMMIT');
+    } catch (err) {
+        dbInstance.run('ROLLBACK');
+        throw err;
+    } finally {
+        stmt.free();
+    }
+
+    await persistirBanco();
+    return grupoId;
+}
+
+/**
+ * Quantos lançamentos da série existem a partir de uma parcela (inclusive)
+ */
+function contarSerieAPartirDe(grupoId, aPartirDeParcela) {
+    return querySQL(
+        'SELECT COUNT(*) as total FROM transacoes WHERE grupo_id = ? AND parcela_atual >= ?',
+        [grupoId, aPartirDeParcela]
+    )[0].total;
+}
+
+/**
+ * Aplica valor, descrição, categoria, conta e observações aos lançamentos da série a partir de uma parcela.
+ * Datas e status de cada lançamento são preservados.
+ */
+async function atualizarSerieTransacoes(grupoId, aPartirDeParcela, { tipo, valor, descricao, categoria_id, conta, observacoes }) {
+    await executeSQL(`
+        UPDATE transacoes
+        SET tipo = ?, valor = ?, descricao = ?, categoria_id = ?, conta = ?, observacoes = ?
+        WHERE grupo_id = ? AND parcela_atual >= ?
+    `, [tipo, valor, descricao, categoria_id, conta || 'Carteira Principal', observacoes || '', grupoId, aPartirDeParcela]);
+}
+
+async function excluirSerieTransacoes(grupoId, aPartirDeParcela) {
+    await executeSQL('DELETE FROM transacoes WHERE grupo_id = ? AND parcela_atual >= ?', [grupoId, aPartirDeParcela]);
 }
 
 // ==========================================
