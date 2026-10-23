@@ -16,7 +16,7 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <!-- sql.js WebAssembly CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
     <!-- Google Fonts: Inter -->
@@ -269,9 +269,9 @@
                         <span class="text-[10px] font-medium text-slate-700 dark:text-slate-300">Relatório</span>
                     </button>
 
-                    <button onclick="exportarArquivoSQLite()" class="flex flex-col items-center p-2.5 rounded-2xl bg-white dark:bg-cardBg hover:bg-slate-50 dark:hover:bg-cardHover border border-slate-200 dark:border-slate-800 transition-all text-center group shadow-sm" title="Baixar Backup do SQLite">
+                    <button onclick="abrirModalBackup()" class="flex flex-col items-center p-2.5 rounded-2xl bg-white dark:bg-cardBg hover:bg-slate-50 dark:hover:bg-cardHover border border-slate-200 dark:border-slate-800 transition-all text-center group shadow-sm" title="Backup & Restauração (RF-04)">
                         <div class="w-9 h-9 rounded-full bg-slate-500/10 group-hover:bg-slate-500/20 text-slate-600 dark:text-slate-400 flex items-center justify-center mb-1 transition-colors">
-                            <i class="fa-solid fa-download text-xs"></i>
+                            <i class="fa-solid fa-shield-halved text-xs"></i>
                         </div>
                         <span class="text-[10px] font-medium text-slate-700 dark:text-slate-300">Backup</span>
                     </button>
@@ -847,6 +847,159 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- MODAL 6: BACKUP & RESTAURAÇÃO (RF-04)      -->
+    <!-- ========================================== -->
+    <div id="modal-backup" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-0 md:p-4 hidden transition-opacity no-print">
+        <div class="w-full max-w-md max-h-[90vh] bg-white dark:bg-cardBg rounded-t-3xl md:rounded-3xl border border-slate-200 dark:border-slate-800 p-5 space-y-4 flex flex-col shadow-2xl overflow-y-auto no-scrollbar">
+
+            <!-- Topo do Modal -->
+            <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-xl bg-slate-500/10 text-slate-600 dark:text-slate-400 flex items-center justify-center">
+                        <i class="fa-solid fa-shield-halved text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100">Backup & Restauração</h3>
+                        <p class="text-[10px] text-slate-400">RF-04 · Dados locais 100% privados</p>
+                    </div>
+                </div>
+                <button onclick="fecharModalBackup()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Info do Banco -->
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2.5">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                        <i class="fa-solid fa-database text-emerald-500 text-[11px]"></i>
+                        Informações do Banco de Dados
+                    </span>
+                    <span id="backup-db-size" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold border border-emerald-500/20">
+                        Calculando...
+                    </span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-center">
+                    <div class="p-2.5 rounded-xl bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800">
+                        <p class="text-[10px] text-slate-400 mb-0.5">Transações</p>
+                        <p class="text-sm font-bold text-slate-900 dark:text-slate-100" id="backup-count-transacoes">0</p>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800">
+                        <p class="text-[10px] text-slate-400 mb-0.5">Categorias</p>
+                        <p class="text-sm font-bold text-slate-900 dark:text-slate-100" id="backup-count-categorias">0</p>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800">
+                        <p class="text-[10px] text-slate-400 mb-0.5">Investimentos</p>
+                        <p class="text-sm font-bold text-slate-900 dark:text-slate-100" id="backup-count-investimentos">0</p>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800">
+                        <p class="text-[10px] text-slate-400 mb-0.5">Orçamentos</p>
+                        <p class="text-sm font-bold text-slate-900 dark:text-slate-100" id="backup-count-orcamentos">0</p>
+                    </div>
+                </div>
+                <p class="text-[10px] text-slate-400 text-center">
+                    <i class="fa-solid fa-circle-info mr-1 text-blue-400"></i>
+                    Último backup: <span id="backup-ultimo-backup">Nunca realizado</span>
+                </p>
+            </div>
+
+            <!-- Exportar Backup -->
+            <div class="p-3.5 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 space-y-2">
+                <div class="flex items-center gap-2 mb-1">
+                    <i class="fa-solid fa-download text-emerald-600 dark:text-emerald-400 text-xs"></i>
+                    <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200">Exportar Backup</h4>
+                </div>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                    Baixe uma cópia completa dos seus dados em formato <code class="px-1 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-xs">.sqlite</code>. Guarde em um local seguro.
+                </p>
+                <button onclick="executarExportacao()" class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white text-xs font-bold transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-download"></i>
+                    Baixar Arquivo de Backup (.sqlite)
+                </button>
+            </div>
+
+            <!-- Restaurar Backup -->
+            <div class="p-3.5 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-2">
+                <div class="flex items-center gap-2 mb-1">
+                    <i class="fa-solid fa-upload text-amber-600 dark:text-amber-400 text-xs"></i>
+                    <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200">Restaurar de Arquivo</h4>
+                </div>
+
+                <!-- Aviso de Segurança -->
+                <div class="flex items-start gap-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-500 text-xs mt-0.5 flex-shrink-0"></i>
+                    <p class="text-[10px] text-amber-700 dark:text-amber-400 leading-relaxed">
+                        <strong>Atenção:</strong> Restaurar substituirá <strong>todos os dados atuais</strong>. Esta ação não pode ser desfeita. Faça um backup antes de prosseguir.
+                    </p>
+                </div>
+
+                <!-- Zona de Upload -->
+                <label id="backup-drop-zone" class="block w-full border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-4 text-center cursor-pointer hover:border-amber-400 dark:hover:border-amber-500 transition-colors group">
+                    <input type="file" accept=".sqlite,.sqlite3,.db,application/x-sqlite3,application/vnd.sqlite3,application/octet-stream" id="backup-file-input" class="hidden" onchange="processarArquivoRestore(event)">
+                    <i class="fa-solid fa-file-arrow-up text-2xl text-slate-400 dark:text-slate-600 group-hover:text-amber-500 transition-colors mb-1"></i>
+                    <p class="text-[11px] font-semibold text-slate-600 dark:text-slate-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                        Clique para selecionar ou arraste o arquivo
+                    </p>
+                    <p class="text-[10px] text-slate-400 mt-0.5">Arquivos .sqlite ou .db do FinControl</p>
+                </label>
+
+                <!-- Arquivo selecionado (oculto por padrão) -->
+                <div id="backup-file-selected" class="hidden p-2.5 rounded-xl bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-file-invoice text-emerald-500 text-sm"></i>
+                        <div>
+                            <p class="text-[11px] font-semibold text-slate-800 dark:text-slate-200" id="backup-file-name">arquivo.sqlite</p>
+                            <p class="text-[10px] text-slate-400" id="backup-file-size">0 KB</p>
+                        </div>
+                    </div>
+                    <button onclick="cancelarSelecaoRestore()" class="text-slate-400 hover:text-rose-500 transition-colors text-xs">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <button id="btn-confirmar-restore" onclick="confirmarRestore()" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 text-xs font-bold transition-all flex items-center justify-center gap-2 hidden">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    Restaurar Este Backup
+                </button>
+            </div>
+
+            <!-- Status da Restauração -->
+            <div id="backup-status-area" class="hidden p-3 rounded-xl border text-xs font-semibold text-center"></div>
+
+            <!-- Informações do PWA -->
+            <div class="p-3.5 rounded-2xl bg-blue-500/5 border border-blue-500/20 space-y-2">
+                <div class="flex items-center gap-2 mb-1">
+                    <i class="fa-solid fa-mobile-screen text-blue-500 text-xs"></i>
+                    <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200">Status do App (PWA)</h4>
+                </div>
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] text-slate-500 dark:text-slate-400">Service Worker</span>
+                        <span id="pwa-sw-status" class="text-[10px] px-2 py-0.5 rounded-full font-semibold border">Verificando...</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] text-slate-500 dark:text-slate-400">Modo Offline</span>
+                        <span id="pwa-offline-status" class="text-[10px] px-2 py-0.5 rounded-full font-semibold border">Verificando...</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] text-slate-500 dark:text-slate-400">Motor SQLite</span>
+                        <span id="pwa-db-status" class="text-[10px] px-2 py-0.5 rounded-full font-semibold border">Verificando...</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] text-slate-500 dark:text-slate-400">Versão do Cache</span>
+                        <span id="pwa-cache-version" class="text-[10px] px-2 py-0.5 rounded-full font-semibold border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-[10px] text-slate-400 text-center pb-1">
+                <i class="fa-solid fa-lock mr-1 text-emerald-500"></i>
+                Todos os dados permanecem 100% locais no seu dispositivo.
+            </p>
+        </div>
+    </div>
+
     <!-- Scripts da Aplicação -->
     <script src="./js/theme.js"></script>
     <script src="./js/db.js"></script>
@@ -901,6 +1054,7 @@
 
             initCharts();
             initSlider();
+            initDropZoneBackup();
         });
 
         function atualizarRelogio() {
@@ -1431,6 +1585,189 @@
 
         function fecharModalRelatorio() {
             document.getElementById('modal-relatorio').classList.add('hidden');
+        }
+
+        // ==========================================
+        // BACKUP & RESTAURAÇÃO (RF-04)
+        // ==========================================
+        const ULTIMO_BACKUP_KEY = 'fincontrol_ultimo_backup';
+        const EXTENSOES_BACKUP = ['.sqlite', '.sqlite3', '.db'];
+        let arquivoRestorePendente = null;
+
+        function formatarTamanhoArquivo(bytes) {
+            if (bytes < 1024) return `${bytes} B`;
+            if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1).replace('.', ',')} KB`;
+            return `${(bytes / (1024 * 1024)).toFixed(2).replace('.', ',')} MB`;
+        }
+
+        function lerUltimoBackup() {
+            try {
+                return localStorage.getItem(ULTIMO_BACKUP_KEY);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function abrirModalBackup() {
+            cancelarSelecaoRestore();
+            ocultarStatusBackup();
+            atualizarInfoBackup();
+            atualizarStatusPWA();
+            document.getElementById('modal-backup').classList.remove('hidden');
+        }
+
+        function fecharModalBackup() {
+            document.getElementById('modal-backup').classList.add('hidden');
+            cancelarSelecaoRestore();
+        }
+
+        function atualizarInfoBackup() {
+            try {
+                const stats = obterEstatisticasBanco();
+                document.getElementById('backup-count-transacoes').innerText = stats.transacoes;
+                document.getElementById('backup-count-categorias').innerText = stats.categorias;
+                document.getElementById('backup-count-investimentos').innerText = stats.investimentos;
+                document.getElementById('backup-count-orcamentos').innerText = stats.orcamentos;
+                document.getElementById('backup-db-size').innerText = formatarTamanhoArquivo(stats.tamanhoBytes);
+            } catch (err) {
+                document.getElementById('backup-db-size').innerText = 'Indisponível';
+            }
+
+            const ultimo = lerUltimoBackup();
+            document.getElementById('backup-ultimo-backup').innerText = ultimo
+                ? new Date(ultimo).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+                : 'Nunca realizado';
+        }
+
+        function definirBadgePWA(id, ok, textoOk, textoFalha) {
+            const el = document.getElementById(id);
+            const base = 'text-[10px] px-2 py-0.5 rounded-full font-semibold border ';
+            el.className = base + (ok
+                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20');
+            el.innerText = ok ? textoOk : textoFalha;
+        }
+
+        async function atualizarStatusPWA() {
+            definirBadgePWA('pwa-db-status', !!dbInstance, 'Ativo', 'Inativo');
+            definirBadgePWA('pwa-offline-status', navigator.onLine, 'Online', 'Offline (cache)');
+
+            const versaoEl = document.getElementById('pwa-cache-version');
+            if (!('serviceWorker' in navigator)) {
+                definirBadgePWA('pwa-sw-status', false, '', 'Não suportado');
+                versaoEl.innerText = '—';
+                return;
+            }
+
+            const reg = await navigator.serviceWorker.getRegistration();
+            definirBadgePWA('pwa-sw-status', !!(reg && reg.active), 'Ativo', 'Não registrado');
+
+            // Versão informada pelo próprio Service Worker
+            if (reg && reg.active) {
+                const canal = new MessageChannel();
+                canal.port1.onmessage = (e) => { versaoEl.innerText = e.data; };
+                reg.active.postMessage('GET_VERSION', [canal.port2]);
+            } else {
+                versaoEl.innerText = '—';
+            }
+        }
+
+        function mostrarStatusBackup(tipo, mensagem) {
+            const area = document.getElementById('backup-status-area');
+            const estilos = {
+                sucesso: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+                erro: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+                info: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
+            };
+            const icones = { sucesso: 'fa-circle-check', erro: 'fa-circle-xmark', info: 'fa-spinner fa-spin' };
+            area.className = `p-3 rounded-xl border text-xs font-semibold text-center ${estilos[tipo]}`;
+            area.innerHTML = `<i class="fa-solid ${icones[tipo]} mr-1"></i>${mensagem}`;
+        }
+
+        function ocultarStatusBackup() {
+            document.getElementById('backup-status-area').classList.add('hidden');
+        }
+
+        function executarExportacao() {
+            try {
+                exportarArquivoSQLite();
+                try {
+                    localStorage.setItem(ULTIMO_BACKUP_KEY, new Date().toISOString());
+                } catch (e) { /* armazenamento indisponível: apenas não registra a data */ }
+                atualizarInfoBackup();
+                mostrarStatusBackup('sucesso', 'Backup gerado! Verifique a pasta de downloads.');
+            } catch (err) {
+                mostrarStatusBackup('erro', 'Erro ao exportar: ' + err.message);
+            }
+        }
+
+        function selecionarArquivoRestore(file) {
+            ocultarStatusBackup();
+            const nome = file.name.toLowerCase();
+            if (!EXTENSOES_BACKUP.some(ext => nome.endsWith(ext))) {
+                cancelarSelecaoRestore();
+                mostrarStatusBackup('erro', 'Formato inválido. Selecione um arquivo .sqlite ou .db.');
+                return;
+            }
+
+            arquivoRestorePendente = file;
+            document.getElementById('backup-file-name').innerText = file.name;
+            document.getElementById('backup-file-size').innerText = formatarTamanhoArquivo(file.size);
+            document.getElementById('backup-drop-zone').classList.add('hidden');
+            document.getElementById('backup-file-selected').classList.remove('hidden');
+            document.getElementById('btn-confirmar-restore').classList.remove('hidden');
+        }
+
+        function processarArquivoRestore(event) {
+            const file = event.target.files && event.target.files[0];
+            if (file) selecionarArquivoRestore(file);
+        }
+
+        function cancelarSelecaoRestore() {
+            arquivoRestorePendente = null;
+            document.getElementById('backup-file-input').value = '';
+            document.getElementById('backup-drop-zone').classList.remove('hidden');
+            document.getElementById('backup-file-selected').classList.add('hidden');
+            document.getElementById('btn-confirmar-restore').classList.add('hidden');
+        }
+
+        async function confirmarRestore() {
+            if (!arquivoRestorePendente) return;
+            if (!confirm('Todos os dados atuais serão substituídos pelo backup selecionado. Deseja continuar?')) return;
+
+            const btn = document.getElementById('btn-confirmar-restore');
+            btn.disabled = true;
+            mostrarStatusBackup('info', 'Restaurando backup...');
+
+            try {
+                await restaurarArquivoSQLite(arquivoRestorePendente);
+                cancelarSelecaoRestore();
+                carregarCategoriasSelect();
+                carregarDadosApp();
+                atualizarInfoBackup();
+                mostrarStatusBackup('sucesso', 'Backup restaurado com sucesso!');
+            } catch (err) {
+                mostrarStatusBackup('erro', err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function initDropZoneBackup() {
+            const zona = document.getElementById('backup-drop-zone');
+            const destaque = ['border-amber-400', 'bg-amber-500/5'];
+
+            zona.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zona.classList.add(...destaque);
+            });
+            zona.addEventListener('dragleave', () => zona.classList.remove(...destaque));
+            zona.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zona.classList.remove(...destaque);
+                const file = e.dataTransfer.files && e.dataTransfer.files[0];
+                if (file) selecionarArquivoRestore(file);
+            });
         }
 
         // ==========================================

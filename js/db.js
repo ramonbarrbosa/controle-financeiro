@@ -533,25 +533,64 @@ function exportarArquivoSQLite() {
     URL.revokeObjectURL(url);
 }
 
+/**
+ * Estatísticas do banco atual para o painel de Backup (RF-04)
+ */
+function obterEstatisticasBanco() {
+    if (!dbInstance) throw new Error('Banco SQLite não inicializado.');
+    const contar = (tabela) => querySQL(`SELECT COUNT(*) as total FROM ${tabela}`)[0].total;
+    return {
+        transacoes: contar('transacoes'),
+        categorias: contar('categorias'),
+        investimentos: contar('investimentos'),
+        orcamentos: contar('orcamentos'),
+        tamanhoBytes: dbInstance.export().length
+    };
+}
+
+/**
+ * Verifica a assinatura "SQLite format 3" + byte nulo nos primeiros 16 bytes do arquivo
+ */
+function possuiCabecalhoSQLite(bytes) {
+    const assinatura = 'SQLite format 3' + String.fromCharCode(0);
+    if (bytes.length < assinatura.length) return false;
+    for (let i = 0; i < assinatura.length; i++) {
+        if (bytes[i] !== assinatura.charCodeAt(i)) return false;
+    }
+    return true;
+}
+
 async function restaurarArquivoSQLite(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = async () => {
+            let novoBanco = null;
             try {
                 const uInt8Array = new Uint8Array(reader.result);
-                const novoBanco = new sqlEngine.Database(uInt8Array);
-                
+                if (!possuiCabecalhoSQLite(uInt8Array)) {
+                    throw new Error('O arquivo selecionado não é um banco SQLite.');
+                }
+
+                novoBanco = new sqlEngine.Database(uInt8Array);
+
                 const check = novoBanco.exec("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('categorias', 'transacoes');");
                 if (!check || check.length === 0 || check[0].values.length < 2) {
                     throw new Error('O arquivo selecionado não é um backup válido do FinControl.');
                 }
 
+                garantirMigracoes(novoBanco);
+
+                // Troca o banco ativo e libera a memória do anterior
+                const bancoAnterior = dbInstance;
                 dbInstance = novoBanco;
-                garantirMigracoes(dbInstance);
+                novoBanco = null;
+                if (bancoAnterior) bancoAnterior.close();
+
                 await persistirBanco();
                 console.log('[SQLite] Banco restaurado com sucesso.');
                 resolve(true);
             } catch (err) {
+                if (novoBanco) novoBanco.close();
                 reject(err);
             }
         };
