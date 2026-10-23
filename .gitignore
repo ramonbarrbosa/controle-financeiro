@@ -13,3 +13,6 @@ Thumbs.db
 # Banco SQLite local de teste se gerado
 *.sqlite-journal
 
+
+# Tailwind CLI (baixado automaticamente por build_css.py)
+tools/

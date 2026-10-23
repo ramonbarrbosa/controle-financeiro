@@ -6,3 +6,6 @@
 requests>=2.31.0
 pytest>=8.0.0
 
+# Ferramentas externas (não instaladas via pip):
+# - Tailwind CSS Standalone CLI v3.4.17: baixado automaticamente por `python build_css.py`
+#   para a pasta tools/ (ignorada pelo Git). Não requer Node.js.

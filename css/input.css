@@ -1,0 +1,4 @@
+/* Entrada do Tailwind CSS: gere css/tailwind.css com `python build_css.py` */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fincontrol-v3';
+const CACHE_NAME = 'fincontrol-v4';
 
 // Arquivos locais: obrigatórios para a instalação do PWA
 const LOCAL_ASSETS = [
@@ -6,13 +6,13 @@ const LOCAL_ASSETS = [
   './index.html',
   './manifest.json',
   './assets/icon.svg',
+  './css/tailwind.css',
   './js/db.js',
   './js/theme.js'
 ];
 
 // CDNs essenciais: cacheadas individualmente (falha de uma não impede a instalação)
 const CDN_ASSETS = [
-  'https://cdn.tailwindcss.com',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js',
   'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.wasm',
