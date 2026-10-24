@@ -1,0 +1,11 @@
+# FinControl - Dependências do Projeto
+# Este projeto executa como um Progressive Web App (PWA) client-side com SQLite via WebAssembly (sql.js).
+# O ambiente Python pode ser utilizado para servidor de desenvolvimento local e automações de teste.
+
+# Servidor de desenvolvimento e utilitários locais (opcional)
+requests>=2.31.0
+pytest>=8.0.0
+
+# Ferramentas externas (não instaladas via pip):
+# - Tailwind CSS Standalone CLI v3.4.17: baixado automaticamente por `python build_css.py`
+#   para a pasta tools/ (ignorada pelo Git). Não requer Node.js.
