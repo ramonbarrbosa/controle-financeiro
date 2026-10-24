@@ -106,7 +106,28 @@
             <!-- TAB 1: DASHBOARD -->
             <!-- ========================================== -->
             <section id="tab-dashboard" class="tab-content space-y-4 block">
-                
+
+                <!-- Lembrete de Backup (Bloco 9) -->
+                <div id="lembrete-backup" class="hidden p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-2.5 no-print">
+                    <div class="flex items-start gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-shield-halved text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-amber-700 dark:text-amber-400" id="lembrete-backup-titulo">Hora de fazer backup</p>
+                            <p class="text-[11px] text-slate-600 dark:text-slate-400" id="lembrete-backup-texto">-</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="adiarLembreteBackup()" class="py-2 rounded-xl bg-white dark:bg-cardBg hover:bg-slate-50 dark:hover:bg-cardHover border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-semibold transition-colors">
+                            Lembrar amanhã
+                        </button>
+                        <button onclick="fazerBackupPeloLembrete()" class="py-2 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 text-[11px] font-bold transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-download"></i> Fazer backup
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Seletor de Mês no Dashboard -->
                 <div class="flex items-center justify-between p-2 rounded-2xl bg-white dark:bg-cardBg border border-slate-200 dark:border-slate-800 shadow-sm no-print">
                     <button onclick="mudarMes(-1)" class="w-7 h-7 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-colors">
@@ -925,6 +946,20 @@
                     <i class="fa-solid fa-download"></i>
                     Baixar Arquivo de Backup (.sqlite)
                 </button>
+
+                <!-- Lembrete de Backup (Bloco 9) -->
+                <div class="flex items-center justify-between gap-3 pt-2 border-t border-emerald-500/20">
+                    <label for="backup-prazo-lembrete" class="text-[11px] font-medium text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-bell text-amber-500 text-[10px]"></i>
+                        Lembrar de fazer backup
+                    </label>
+                    <select id="backup-prazo-lembrete" onchange="salvarPrazoLembreteBackup(this.value)" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] font-semibold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-500">
+                        <option value="7">A cada 7 dias</option>
+                        <option value="15">A cada 15 dias</option>
+                        <option value="30">A cada 30 dias</option>
+                        <option value="0">Desativado</option>
+                    </select>
+                </div>
             </div>
 
             <!-- Restaurar Backup -->
@@ -1821,15 +1856,98 @@
             return `${(bytes / (1024 * 1024)).toFixed(2).replace('.', ',')} MB`;
         }
 
-        function lerUltimoBackup() {
+        // Preferências do aparelho (localStorage pode estar indisponível: falha silenciosa)
+        function lerPreferencia(chave) {
             try {
-                return localStorage.getItem(ULTIMO_BACKUP_KEY);
+                return localStorage.getItem(chave);
             } catch (e) {
                 return null;
             }
         }
 
+        function gravarPreferencia(chave, valor) {
+            try {
+                localStorage.setItem(chave, valor);
+            } catch (e) { /* armazenamento indisponível: preferência não é registrada */ }
+        }
+
+        function lerUltimoBackup() {
+            return lerPreferencia(ULTIMO_BACKUP_KEY);
+        }
+
+        // ==========================================
+        // LEMBRETE DE BACKUP (BLOCO 9)
+        // ==========================================
+        const PRAZO_LEMBRETE_KEY = 'fincontrol_backup_prazo_dias';
+        const ADIADO_ATE_KEY = 'fincontrol_backup_adiado_ate';
+        const PRAZOS_LEMBRETE = [0, 7, 15, 30]; // 0 = desativado
+        const PRAZO_LEMBRETE_PADRAO = 7;
+        const UM_DIA_MS = 24 * 60 * 60 * 1000;
+
+        function lerPrazoLembreteBackup() {
+            const prazo = parseInt(lerPreferencia(PRAZO_LEMBRETE_KEY), 10);
+            return PRAZOS_LEMBRETE.includes(prazo) ? prazo : PRAZO_LEMBRETE_PADRAO;
+        }
+
+        // Decide se o lembrete deve aparecer (datas em milissegundos)
+        function avaliarLembreteBackup({ ultimoBackup, adiadoAte, prazoDias, totalLancamentos, agora }) {
+            if (!prazoDias) return { mostrar: false, diasDesde: null };
+            if (adiadoAte && agora < adiadoAte) return { mostrar: false, diasDesde: null };
+            if (!ultimoBackup) return { mostrar: totalLancamentos > 0, diasDesde: null };
+            const diasDesde = Math.floor((agora - ultimoBackup) / UM_DIA_MS);
+            return { mostrar: diasDesde >= prazoDias, diasDesde };
+        }
+
+        function atualizarLembreteBackup() {
+            if (!dbInstance) return;
+            const ultimo = lerUltimoBackup();
+            const adiadoAte = parseInt(lerPreferencia(ADIADO_ATE_KEY), 10);
+            const totalLancamentos = querySQL('SELECT COUNT(*) as total FROM transacoes')[0].total;
+
+            const lembrete = avaliarLembreteBackup({
+                ultimoBackup: ultimo ? new Date(ultimo).getTime() : null,
+                adiadoAte: Number.isFinite(adiadoAte) ? adiadoAte : null,
+                prazoDias: lerPrazoLembreteBackup(),
+                totalLancamentos,
+                agora: Date.now()
+            });
+
+            document.getElementById('lembrete-backup').classList.toggle('hidden', !lembrete.mostrar);
+            if (!lembrete.mostrar) return;
+
+            if (lembrete.diasDesde === null) {
+                document.getElementById('lembrete-backup-titulo').innerText = 'Você ainda não fez nenhum backup';
+                const situacao = totalLancamentos === 1
+                    ? 'Seu lançamento está salvo'
+                    : `Seus ${totalLancamentos} lançamentos estão salvos`;
+                document.getElementById('lembrete-backup-texto').innerText =
+                    `${situacao} apenas neste aparelho. Baixe uma cópia para não perder seus dados.`;
+            } else {
+                document.getElementById('lembrete-backup-titulo').innerText = 'Hora de fazer backup';
+                document.getElementById('lembrete-backup-texto').innerText =
+                    `Seu último backup foi há ${lembrete.diasDesde} dias. Baixe uma cópia atualizada dos seus dados.`;
+            }
+        }
+
+        function adiarLembreteBackup() {
+            gravarPreferencia(ADIADO_ATE_KEY, String(Date.now() + UM_DIA_MS));
+            atualizarLembreteBackup();
+        }
+
+        function fazerBackupPeloLembrete() {
+            if (!executarExportacao()) {
+                alert('Não foi possível gerar o backup. Tente novamente pelo botão Backup.');
+            }
+        }
+
+        function salvarPrazoLembreteBackup(prazo) {
+            gravarPreferencia(PRAZO_LEMBRETE_KEY, String(prazo));
+            gravarPreferencia(ADIADO_ATE_KEY, '');
+            atualizarLembreteBackup();
+        }
+
         function abrirModalBackup() {
+            document.getElementById('backup-prazo-lembrete').value = String(lerPrazoLembreteBackup());
             cancelarSelecaoRestore();
             ocultarStatusBackup();
             atualizarInfoBackup();
@@ -1912,13 +2030,14 @@
         function executarExportacao() {
             try {
                 exportarArquivoSQLite();
-                try {
-                    localStorage.setItem(ULTIMO_BACKUP_KEY, new Date().toISOString());
-                } catch (e) { /* armazenamento indisponível: apenas não registra a data */ }
+                gravarPreferencia(ULTIMO_BACKUP_KEY, new Date().toISOString());
                 atualizarInfoBackup();
+                atualizarLembreteBackup();
                 mostrarStatusBackup('sucesso', 'Backup gerado! Verifique a pasta de downloads.');
+                return true;
             } catch (err) {
                 mostrarStatusBackup('erro', 'Erro ao exportar: ' + err.message);
+                return false;
             }
         }
 
@@ -2107,6 +2226,7 @@
                 atualizarCardInvestimentos();
                 renderizarTransacoes();
                 atualizarGraficos();
+                atualizarLembreteBackup();
             } catch (e) {
                 console.warn('Erro ao atualizar dados do app:', e);
             }
