@@ -4,12 +4,14 @@ Aplicativo leve para organizar receitas e despesas pessoais ou familiares. Funci
 pode ser instalado no celular Android como um app (PWA) e **guarda todos os dados apenas no próprio aparelho**:
 não há servidor, login nem envio de informações para a internet.
 
+**Acesse:** [https://ramonbarrbosa.github.io/controle-financeiro/](https://ramonbarrbosa.github.io/controle-financeiro/)
+
 ---
 
 ## 1. Como usar o aplicativo
 
 ### Instalação no celular
-1. Abra o endereço do app (GitHub Pages) no Chrome do Android.
+1. Abra [ramonbarrbosa.github.io/controle-financeiro](https://ramonbarrbosa.github.io/controle-financeiro/) no Chrome do Android.
 2. No menu do navegador, toque em **Instalar app** (ou **Adicionar à tela inicial**).
 3. O FINControl passa a abrir como um aplicativo comum e funciona **mesmo sem internet**.
 

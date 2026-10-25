@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fincontrol-v4';
+const CACHE_NAME = 'fincontrol-v5';
 
 // Arquivos locais: obrigatórios para a instalação do PWA
 const LOCAL_ASSETS = [
