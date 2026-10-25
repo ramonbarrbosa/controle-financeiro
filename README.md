@@ -49,7 +49,7 @@ No Extrato, toque no selo **Pendente** de um lançamento para marcá-lo como **P
 ### Outras funções
 | Função | Onde fica | O que faz |
 |---|---|---|
-| **Categorias (Tags)** | Dashboard → Tags | Criar, editar e remover categorias de receita e despesa, com ícone e cor. |
+| **Categorias** | Dashboard → Categorias, ou botão **+** ao lado do campo Categoria no lançamento | Criar, renomear e remover categorias de receita e despesa, com ícone e cor. |
 | **Relatório mensal** | Dashboard → Relatório | Totais do mês, saldo, % de cada categoria nas despesas e contas pagas x pendentes. Pode ser impresso ou salvo em PDF. |
 | **Investimentos** | Dashboard → card Investimentos | Registro do patrimônio investido (Renda Fixa, Renda Variável, Fundos, Outros). |
 | **Teto de gastos** | Dashboard → card Teto de Gastos | Define um limite de despesas para o mês e mostra quanto já foi usado. |

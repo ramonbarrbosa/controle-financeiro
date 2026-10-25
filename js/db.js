@@ -284,16 +284,26 @@ async function salvarCategoria({ id, nome, tipo, icone, cor }) {
 
     if (id) {
         await executeSQL(`
-            UPDATE categorias 
-            SET nome = ?, tipo = ?, icone = ?, cor = ? 
+            UPDATE categorias
+            SET nome = ?, tipo = ?, icone = ?, cor = ?
             WHERE id = ?
         `, [nome, tipo, icone, cor, id]);
-    } else {
-        await executeSQL(`
-            INSERT INTO categorias (nome, tipo, icone, cor) 
-            VALUES (?, ?, ?, ?)
-        `, [nome, tipo, icone, cor]);
+        return id;
     }
+
+    dbInstance.run(`
+        INSERT INTO categorias (nome, tipo, icone, cor)
+        VALUES (?, ?, ?, ?)
+    `, [nome, tipo, icone, cor]);
+    // Lido antes de persistir: o export() do sql.js reabre o banco e zera o last_insert_rowid()
+    const novoId = querySQL('SELECT last_insert_rowid() AS id')[0].id;
+    await persistirBanco();
+    return novoId;
+}
+
+function obterCategoriaPorId(id) {
+    const res = querySQL('SELECT * FROM categorias WHERE id = ?', [id]);
+    return res.length > 0 ? res[0] : null;
 }
 
 async function excluirCategoria(id) {

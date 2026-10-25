@@ -240,7 +240,7 @@
                         <div class="w-9 h-9 rounded-full bg-blue-500/10 group-hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-1 transition-colors">
                             <i class="fa-solid fa-tags text-xs"></i>
                         </div>
-                        <span class="text-[10px] font-medium text-slate-700 dark:text-slate-300">Tags</span>
+                        <span class="text-[10px] font-medium text-slate-700 dark:text-slate-300">Categorias</span>
                     </button>
 
                     <button onclick="abrirModalRelatorio()" class="flex flex-col items-center p-2.5 rounded-2xl bg-white dark:bg-cardBg hover:bg-slate-50 dark:hover:bg-cardHover border border-slate-200 dark:border-slate-800 transition-all text-center group shadow-sm" title="Relatório Mensal Analítico (RF-03)">
@@ -569,9 +569,14 @@
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Categoria *</label>
-                        <select id="form-categoria" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-500">
-                            <!-- Preenchido via SQLite -->
-                        </select>
+                        <div class="flex gap-1.5">
+                            <select id="form-categoria" class="flex-1 min-w-0 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-500">
+                                <!-- Preenchido via SQLite -->
+                            </select>
+                            <button type="button" onclick="abrirCategoriasPeloFormulario()" class="w-9 flex-shrink-0 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center transition-colors" title="Nova categoria">
+                                <i class="fa-solid fa-plus text-xs"></i>
+                            </button>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Status</label>
@@ -1167,7 +1172,7 @@
                 const select = document.getElementById('form-categoria');
                 select.innerHTML = categorias.map(c => `
                     <option value="${c.id}" ${categoriaSelecionadaId == c.id ? 'selected' : ''}>
-                        ${c.nome} (${c.tipo})
+                        ${c.nome}
                     </option>
                 `).join('');
             } catch (e) {
@@ -1537,15 +1542,40 @@
         // ==========================================
         // GESTÃO DE CATEGORIAS (RF-01)
         // ==========================================
+        let gestaoCategoriasPeloFormulario = false;
+        let categoriaCriadaPeloFormulario = null;
+
         function abrirModalCategorias() {
+            gestaoCategoriasPeloFormulario = false;
+            categoriaCriadaPeloFormulario = null;
             document.getElementById('modal-categorias').classList.remove('hidden');
             cancelarEdicaoCategoria();
             renderizarListaCategorias();
         }
 
+        // Atalho "+" do formulário de lançamento: já sugere o tipo do lançamento e volta com a categoria selecionada
+        function abrirCategoriasPeloFormulario() {
+            abrirModalCategorias();
+            gestaoCategoriasPeloFormulario = true;
+            document.getElementById('cat-tipo').value = obterTipoLancamentoFormulario() === 'receita' ? 'Receita' : 'Despesa';
+            document.getElementById('cat-nome').focus();
+        }
+
+        function obterTipoLancamentoFormulario() {
+            return document.querySelector('input[name="trans_type"]:checked').value;
+        }
+
+        // Recarrega as categorias do formulário de lançamento (filtradas pelo tipo), mantendo ou trocando a seleção
+        function recarregarCategoriasDoFormulario(selecionarId = null) {
+            const selecionadaAtual = document.getElementById('form-categoria').value;
+            carregarCategoriasSelect(obterTipoLancamentoFormulario(), selecionarId || selecionadaAtual);
+        }
+
         function fecharModalCategorias() {
             document.getElementById('modal-categorias').classList.add('hidden');
-            carregarCategoriasSelect();
+            recarregarCategoriasDoFormulario(categoriaCriadaPeloFormulario);
+            gestaoCategoriasPeloFormulario = false;
+            categoriaCriadaPeloFormulario = null;
         }
 
         function renderizarListaCategorias() {
@@ -1569,7 +1599,7 @@
                         </div>
                     </div>
                     <div class="flex space-x-1">
-                        <button onclick="editarCategoria(${c.id}, '${c.nome}', '${c.tipo}', '${c.icone}', '${c.cor}')" class="w-6 h-6 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-xs">
+                        <button onclick="editarCategoria(${c.id})" class="w-6 h-6 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-xs">
                             <i class="fa-solid fa-pen"></i>
                         </button>
                         <button onclick="deletarCategoria(${c.id})" class="w-6 h-6 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-xs">
@@ -1589,23 +1619,35 @@
             const cor = document.getElementById('cat-cor').value;
 
             try {
-                await salvarCategoria({ id: id ? parseInt(id) : null, nome, tipo, icone, cor });
+                const categoriaId = await salvarCategoria({ id: id ? parseInt(id) : null, nome, tipo, icone, cor });
+
+                // Criada pelo atalho do formulário: volta ao lançamento já com a categoria selecionada
+                const tipoLancamento = obterTipoLancamentoFormulario() === 'receita' ? 'Receita' : 'Despesa';
+                if (!id && gestaoCategoriasPeloFormulario && tipo === tipoLancamento) {
+                    categoriaCriadaPeloFormulario = categoriaId;
+                    fecharModalCategorias();
+                    return;
+                }
+
                 cancelarEdicaoCategoria();
                 renderizarListaCategorias();
-                carregarCategoriasSelect();
+                recarregarCategoriasDoFormulario();
             } catch (err) {
                 alert('Erro: ' + err.message);
             }
         }
 
-        function editarCategoria(id, nome, tipo, icone, cor) {
-            document.getElementById('cat-edit-id').value = id;
-            document.getElementById('cat-nome').value = nome;
-            document.getElementById('cat-tipo').value = tipo;
-            document.getElementById('cat-icone').value = icone;
-            document.getElementById('cat-cor').value = cor;
+        function editarCategoria(id) {
+            const c = obterCategoriaPorId(id);
+            if (!c) return;
+            document.getElementById('cat-edit-id').value = c.id;
+            document.getElementById('cat-nome').value = c.nome;
+            document.getElementById('cat-tipo').value = c.tipo;
+            document.getElementById('cat-icone').value = c.icone;
+            document.getElementById('cat-cor').value = c.cor;
             document.getElementById('cat-form-title').innerText = 'Editar Categoria';
             document.getElementById('btn-cancelar-edit-cat').classList.remove('hidden');
+            document.getElementById('cat-nome').focus();
         }
 
         function cancelarEdicaoCategoria() {
@@ -1620,7 +1662,7 @@
             try {
                 await excluirCategoria(id);
                 renderizarListaCategorias();
-                carregarCategoriasSelect();
+                recarregarCategoriasDoFormulario();
             } catch (err) {
                 alert(err.message);
             }
